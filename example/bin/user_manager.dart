@@ -33,38 +33,38 @@ import 'package:cl_server_dart_client/cl_server_dart_client.dart';
 ///   --prefix           User prefix (default: t#)
 
 late SessionManager sessionManager;
-late AuthService authService;
-late StoreService storeService;
+late UserManager userManager;
 
 String authServiceUrl = 'http://localhost:8000';
 String storeServiceUrl = 'http://localhost:8001';
-
-/// Prefix for users created by this utility
-/// Used internally to identify and manage users created through this CLI
 String userPrefix = 't#';
 
-/// Add prefix to username for internal storage
-String addPrefix(String username) => '$userPrefix$username';
-
-/// Remove prefix from username for display
-/// Intelligently removes known prefixes to handle cases where prefix changed
+/// Remove prefix from username for CLI display
 String removePrefix(String username) {
   // Try to remove current prefix first
   if (username.startsWith(userPrefix)) {
     return username.substring(userPrefix.length);
   }
 
-  // Try to remove other common prefixes created by this utility
-  // This handles cases where prefix was changed between invocations
-  const commonPrefixes = ['t#', 'test_', 'cli_', 'util_'];
+  // Try to remove other common prefixes
+  const commonPrefixes = ['t#', 'test_', 'cli_', 'util_', 'script_'];
   for (final prefix in commonPrefixes) {
     if (username.startsWith(prefix)) {
       return username.substring(prefix.length);
     }
   }
 
-  // Return username as-is if no prefix found
   return username;
+}
+
+/// Check if a username was created by this utility
+bool isUtilityCreatedUser(String username) {
+  if (username.startsWith(userPrefix)) {
+    return true;
+  }
+
+  const commonUtilityPrefixes = ['t#', 'test_', 'cli_', 'util_', 'script_'];
+  return commonUtilityPrefixes.any((prefix) => username.startsWith(prefix));
 }
 
 Future<void> main(List<String> args) async {
@@ -169,12 +169,10 @@ Future<void> main(List<String> args) async {
       exit(1);
     }
 
-    // Create authenticated services
-    authService = await sessionManager.createAuthService(
-      baseUrl: authServiceUrl,
-    );
-    storeService = await sessionManager.createStoreService(
-      baseUrl: storeServiceUrl,
+    // Create authenticated user manager
+    userManager = await UserManager.authenticated(
+      sessionManager: sessionManager,
+      prefix: userPrefix,
     );
 
     // Get command from arguments
@@ -440,22 +438,23 @@ Future<void> createUser(
   print('\n📝 Creating user: $username...');
 
   try {
-    // Add prefix to username for internal storage
-    final prefixedUsername = addPrefix(username);
-
-    // Create user via auth service
-    final newUser = await authService.createUser(
-      username: prefixedUsername,
+    // Create user via user manager
+    final result = await userManager.createUser(
+      username: username,
       password: password,
       isAdmin: isAdmin,
-      permissions: [],
     );
 
-    print('✓ User created successfully!');
-    print('  - ID: ${newUser.id}');
-    print('  - Username: ${removePrefix(newUser.username)}');
-    print('  - Admin: ${newUser.isAdmin ? 'Yes' : 'No'}');
-    print('  - Active: ${newUser.isActive ? 'Yes' : 'No'}');
+    if (result.isSuccess) {
+      final newUser = result.data;
+      print('✓ User created successfully!');
+      print('  - ID: ${newUser.id}');
+      print('  - Username: ${removePrefix(newUser.username)}');
+      print('  - Admin: ${newUser.isAdmin ? 'Yes' : 'No'}');
+      print('  - Active: ${newUser.isActive ? 'Yes' : 'No'}');
+    } else {
+      print('✗ ${result.error}');
+    }
   } catch (e) {
     print('✗ Failed to create user: $e');
   }
@@ -553,19 +552,24 @@ Future<void> updateUser(
   print('\n📝 Updating user ID: $userId...');
 
   try {
-    final updatedUser = await authService.updateUser(
-      userId,
+    final result = await userManager.updateUser(
+      userId: userId,
       password: newPassword.isNotEmpty ? newPassword : null,
       isAdmin: isAdmin,
       isActive: isActive,
       permissions: permissions,
     );
 
-    print('✓ User updated successfully!');
-    print('  - ID: ${updatedUser.id}');
-    print('  - Username: ${removePrefix(updatedUser.username)}');
-    print('  - Admin: ${updatedUser.isAdmin ? 'Yes' : 'No'}');
-    print('  - Active: ${updatedUser.isActive ? 'Yes' : 'No'}');
+    if (result.isSuccess) {
+      final updatedUser = result.data;
+      print('✓ User updated successfully!');
+      print('  - ID: ${updatedUser.id}');
+      print('  - Username: ${removePrefix(updatedUser.username)}');
+      print('  - Admin: ${updatedUser.isAdmin ? 'Yes' : 'No'}');
+      print('  - Active: ${updatedUser.isActive ? 'Yes' : 'No'}');
+    } else {
+      print('✗ ${result.error}');
+    }
   } catch (e) {
     print('✗ Failed to update user: $e');
   }
@@ -624,11 +628,15 @@ Future<void> deleteUser(int userId) async {
   print('\n🗑️  Deleting user ID: $userId...');
 
   try {
-    // Delete user via auth service
-    await authService.deleteUser(userId);
+    // Delete user via user manager
+    final result = await userManager.deleteUser(userId: userId);
 
-    print('✓ User deleted successfully!');
-    print('  - User ID: $userId has been removed from the system');
+    if (result.isSuccess) {
+      print('✓ User deleted successfully!');
+      print('  - User ID: $userId has been removed from the system');
+    } else {
+      print('✗ ${result.error}');
+    }
   } catch (e) {
     print('✗ Failed to delete user: $e');
   }
@@ -645,10 +653,20 @@ Future<void> listUsersCommand([List<String> args = const []]) async {
   print('\n📋 Fetching users...');
 
   try {
-    final users = await authService.listUsers(skip: 0, limit: 100);
+    final result = await userManager.listUsers(
+      options: UserListOptions(
+        skip: 0,
+        limit: 100,
+        showAll: showAll,
+      ),
+    );
 
-    // Filter users based on --all flag
-    final displayedUsers = showAll ? users : users.where((u) => isUtilityCreatedUser(u.username)).toList();
+    if (!result.isSuccess) {
+      print('✗ ${result.error}');
+      return;
+    }
+
+    final displayedUsers = result.data as List;
 
     print('\n' + '=' * 70);
     final title = showAll ? 'All Users' : 'Utility-Created Users';
@@ -675,8 +693,8 @@ Future<void> listUsersCommand([List<String> args = const []]) async {
 
       print('-' * 70);
       print('Total: ${displayedUsers.length} users');
-      if (!showAll && displayedUsers.length < users.length) {
-        print('(Showing utility-created users only. Use --all to see all ${users.length} users)');
+      if (!showAll && displayedUsers.length < result.data.length) {
+        print('(Showing utility-created users only. Use --all to see all ${result.data.length} users)');
       }
     }
   } catch (e) {
@@ -684,19 +702,6 @@ Future<void> listUsersCommand([List<String> args = const []]) async {
   }
 }
 
-/// Check if a username was created by this utility
-/// A user is considered utility-created if it starts with any known utility prefix
-bool isUtilityCreatedUser(String username) {
-  // Check against current prefix first
-  if (username.startsWith(userPrefix)) {
-    return true;
-  }
-
-  // List of other common prefixes used by this utility
-  // This handles cases where different prefixes were used in the past
-  const commonUtilityPrefixes = ['t#', 'test_', 'cli_', 'util_', 'script_'];
-  return commonUtilityPrefixes.any((prefix) => username.startsWith(prefix));
-}
 
 /// Get user details interactively
 Future<void> getUserInteractive() async {
@@ -732,16 +737,21 @@ Future<void> getUser(int userId) async {
   print('\n👤 Fetching user ID: $userId...');
 
   try {
-    final user = await authService.getUser(userId);
+    final result = await userManager.getUser(userId: userId);
 
-    print('\n' + '=' * 70);
-    print('User Details');
-    print('=' * 70);
-    print('ID: ${user.id}');
-    print('Username: ${removePrefix(user.username)}');
-    print('Admin: ${user.isAdmin ? 'Yes' : 'No'}');
-    print('Active: ${user.isActive ? 'Yes' : 'No'}');
-    print('=' * 70);
+    if (result.isSuccess) {
+      final user = result.data;
+      print('\n' + '=' * 70);
+      print('User Details');
+      print('=' * 70);
+      print('ID: ${user.id}');
+      print('Username: ${removePrefix(user.username)}');
+      print('Admin: ${user.isAdmin ? 'Yes' : 'No'}');
+      print('Active: ${user.isActive ? 'Yes' : 'No'}');
+      print('=' * 70);
+    } else {
+      print('✗ ${result.error}');
+    }
   } catch (e) {
     print('✗ Failed to fetch user: $e');
   }
@@ -781,20 +791,29 @@ Future<void> getUserPermissions(int userId) async {
   print('\n🔑 Fetching permissions for user ID: $userId...');
 
   try {
-    final user = await authService.getUser(userId);
+    final result = await userManager.getUserPermissions(userId: userId);
 
-    print('\n' + '=' * 70);
-    print('User: ${removePrefix(user.username)} (ID: ${user.id})');
-    print('=' * 70);
-    print('Permissions:');
-    if (user.permissions.isEmpty) {
-      print('  (none)');
-    } else {
-      for (final perm in user.permissions) {
-        print('  - $perm');
+    if (result.isSuccess) {
+      // Get user details to show username alongside permissions
+      final userResult = await userManager.getUser(userId: userId);
+      final username = userResult.isSuccess ? removePrefix(userResult.data.username) : 'Unknown';
+
+      final permissions = result.data as List<String>;
+      print('\n' + '=' * 70);
+      print('User: $username (ID: $userId)');
+      print('=' * 70);
+      print('Permissions:');
+      if (permissions.isEmpty) {
+        print('  (none)');
+      } else {
+        for (final perm in permissions) {
+          print('  - $perm');
+        }
       }
+      print('=' * 70);
+    } else {
+      print('✗ ${result.error}');
     }
-    print('=' * 70);
   } catch (e) {
     print('✗ Failed to fetch user permissions: $e');
   }
@@ -805,18 +824,25 @@ Future<void> getStoreConfigCommand() async {
   print('\n📋 Fetching Store Configuration...');
 
   try {
-    final config = await storeService.getConfig();
+    final result = await userManager.getStoreConfig();
 
-    print('\n' + '=' * 70);
-    print('Store Configuration');
-    print('=' * 70);
-    final readAuthStatus = config.readAuthEnabled ? 'Enabled' : 'Disabled';
-    print('Read Authentication: $readAuthStatus');
-    print('Last Updated: ${config.updatedAt}');
-    if (config.updatedBy != null) {
-      print('Updated By: ${config.updatedBy}');
+    if (result.isSuccess) {
+      final config = result.data;
+      print('\n' + '=' * 70);
+      print('Store Configuration');
+      print('=' * 70);
+      final readAuthStatus = config.readAuthEnabled ? 'Enabled' : 'Disabled';
+      print('Read Authentication: $readAuthStatus');
+      print('Last Updated: ${config.updatedAt}');
+      if (config.updatedBy != null) {
+        print('Updated By: ${config.updatedBy}');
+      }
+      print('=' * 70);
+    } else {
+      print('✗ ${result.error}');
+      print(
+          '⚠️  Note: /admin/config endpoint may not be implemented on the server');
     }
-    print('=' * 70);
   } catch (e) {
     print('✗ Failed to fetch store configuration: $e');
     print(
@@ -830,14 +856,19 @@ Future<void> updateReadAuthInteractive() async {
 
   // Show current config first
   try {
-    final currentConfig = await storeService.getConfig();
-    print('Current Read Authentication: ${currentConfig.readAuthEnabled ? 'Enabled' : 'Disabled'}');
+    final configResult = await userManager.getStoreConfig();
+    if (configResult.isSuccess) {
+      final currentConfig = configResult.data;
+      print('Current Read Authentication: ${currentConfig.readAuthEnabled ? 'Enabled' : 'Disabled'}');
 
-    stdout.write('\nEnable read authentication? (y/n): ');
-    final input = stdin.readLineSync()?.toLowerCase() ?? 'n';
-    final enabled = input == 'y';
+      stdout.write('\nEnable read authentication? (y/n): ');
+      final input = stdin.readLineSync()?.toLowerCase() ?? 'n';
+      final enabled = input == 'y';
 
-    await updateReadAuthConfig(enabled);
+      await updateReadAuthConfig(enabled);
+    } else {
+      print('✗ Error: ${configResult.error}');
+    }
   } catch (e) {
     print('✗ Error: $e');
   }
@@ -876,16 +907,21 @@ Future<void> updateReadAuthConfig(bool enabled) async {
   print('\n⚙️  Updating read authentication configuration...');
 
   try {
-    final updatedConfig = await storeService.updateReadAuthConfig(
-      enabled: enabled,
-    );
+    final result = await userManager.updateReadAuth(enabled: enabled);
 
-    print('✓ Read authentication updated successfully!');
-    final status = updatedConfig.readAuthEnabled ? 'Enabled' : 'Disabled';
-    print('  - Status: $status');
-    print('  - Updated At: ${updatedConfig.updatedAt}');
-    if (updatedConfig.updatedBy != null) {
-      print('  - Updated By: ${updatedConfig.updatedBy}');
+    if (result.isSuccess) {
+      final updatedConfig = result.data;
+      print('✓ Read authentication updated successfully!');
+      final status = updatedConfig.readAuthEnabled ? 'Enabled' : 'Disabled';
+      print('  - Status: $status');
+      print('  - Updated At: ${updatedConfig.updatedAt}');
+      if (updatedConfig.updatedBy != null) {
+        print('  - Updated By: ${updatedConfig.updatedBy}');
+      }
+    } else {
+      print('✗ ${result.error}');
+      print('⚠️  Note: /admin/config/read-auth endpoint may not be fully'
+          ' implemented on the server');
     }
   } catch (e) {
     print('✗ Failed to update read authentication: $e');

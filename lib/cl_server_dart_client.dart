@@ -58,5 +58,11 @@ export 'src/store_manager/store_manager.dart';
 export 'src/store_manager/models/result_model.dart';
 export 'src/store_manager/exceptions.dart';
 
+// User Manager module
+export 'src/user_manager/user_manager.dart';
+export 'src/user_manager/models/result_model.dart';
+export 'src/user_manager/models/user_filter.dart';
+export 'src/user_manager/exceptions.dart';
+
 // Constants
 export 'src/utils/constants.dart';
