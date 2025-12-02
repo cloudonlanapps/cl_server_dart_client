@@ -1,8 +1,6 @@
 import 'package:cl_server_dart_client/cl_server_dart_client.dart';
 import 'package:test/test.dart';
 
-import '../server_addr.dart' show authServiceUrl, storeServiceUrl;
-
 /// Health check utilities for integration tests
 ///
 /// Provides conditional service availability verification
@@ -11,7 +9,7 @@ import '../server_addr.dart' show authServiceUrl, storeServiceUrl;
 /// Check if Auth service is available
 Future<bool> checkAuthServiceHealth() async {
   try {
-    final authService = AuthService(baseUrl: authServiceUrl);
+    final authService = AuthService(baseUrl: authServiceBaseUrl);
     await authService.getPublicKey();
     return true;
   } on Exception catch (_) {
@@ -22,7 +20,7 @@ Future<bool> checkAuthServiceHealth() async {
 /// Check if Store service is available
 Future<bool> checkStoreServiceHealth() async {
   try {
-    final storeService = StoreService(baseUrl: storeServiceUrl);
+    final storeService = StoreService(baseUrl: storeServiceBaseUrl);
     await storeService.listEntities(pageSize: 1);
     return true;
   } on Exception catch (_) {
@@ -34,7 +32,7 @@ Future<bool> checkStoreServiceHealth() async {
 // ignore: unreachable_from_main Tests should be added
 Future<void> ensureAuthServiceHealthy() async {
   if (!await checkAuthServiceHealth()) {
-    throw Exception('Auth service not available at $authServiceUrl');
+    throw Exception('Auth service not available at $authServiceBaseUrl');
   }
 }
 
@@ -42,7 +40,7 @@ Future<void> ensureAuthServiceHealthy() async {
 // ignore: unreachable_from_main Tests should be added
 Future<void> ensureStoreServiceHealthy() async {
   if (!await checkStoreServiceHealth()) {
-    throw Exception('Store service not available at $storeServiceUrl');
+    throw Exception('Store service not available at $storeServiceBaseUrl');
   }
 }
 
@@ -54,14 +52,14 @@ Future<void> ensureBothServicesHealthy() async {
   if (!authHealthy && !storeHealthy) {
     throw Exception(
       'Both services unavailable: '
-      'Auth($authServiceUrl), Store($storeServiceUrl)',
+      'Auth($authServiceBaseUrl), Store($storeServiceBaseUrl)',
     );
   }
   if (!authHealthy) {
-    throw Exception('Auth service not available at $authServiceUrl');
+    throw Exception('Auth service not available at $authServiceBaseUrl');
   }
   if (!storeHealthy) {
-    throw Exception('Store service not available at $storeServiceUrl');
+    throw Exception('Store service not available at $storeServiceBaseUrl');
   }
 }
 
@@ -72,7 +70,7 @@ void main() {
       expect(
         isHealthy,
         isTrue,
-        reason: 'Auth service should be available at $authServiceUrl',
+        reason: 'Auth service should be available at $authServiceBaseUrl',
       );
     });
 
@@ -81,7 +79,7 @@ void main() {
       expect(
         isHealthy,
         isTrue,
-        reason: 'Store service should be available at $storeServiceUrl',
+        reason: 'Store service should be available at $storeServiceBaseUrl',
       );
     });
 

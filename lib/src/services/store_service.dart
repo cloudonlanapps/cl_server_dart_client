@@ -146,6 +146,7 @@ class StoreService {
     final response = await _httpClient.put(
       endpoint,
       body: body,
+      isFormData: true,
     );
     return Entity.fromJson(response);
   }

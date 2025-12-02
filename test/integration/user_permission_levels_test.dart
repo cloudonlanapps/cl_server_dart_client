@@ -1,7 +1,6 @@
 import 'package:cl_server_dart_client/cl_server_dart_client.dart';
 import 'package:test/test.dart';
 
-import '../server_addr.dart' show authServiceUrl;
 import 'health_check_test.dart';
 
 /// Test admin user operations via UserManager
@@ -31,7 +30,7 @@ void main() {
       await sessionManager.login(
         adminUsername,
         adminPassword,
-        authBaseUrl: authServiceUrl,
+        authBaseUrl: authServiceBaseUrl,
       );
 
       // Create user manager

@@ -76,14 +76,35 @@ class HttpClientWrapper {
     String endpoint, {
     Map<String, dynamic>? body,
     Map<String, String>? queryParameters,
+    bool isFormData = false,
   }) async {
     try {
       final uri = _buildUri(endpoint, queryParameters);
-      final response = await _httpClient.put(
-        uri,
-        headers: _buildHeaders(),
-        body: body != null ? jsonEncode(body) : null,
-      );
+      late final http.Response response;
+
+      if (isFormData) {
+        // Handle form data
+        final request = http.MultipartRequest('PUT', uri);
+        request.headers.addAll(_buildHeaders());
+        if (body != null) {
+          body.forEach((key, value) {
+            // Convert all values to String for form data
+            if (value != null) {
+              request.fields[key] = value.toString();
+            }
+          });
+        }
+        final streamResponse = await _httpClient.send(request);
+        response = await http.Response.fromStream(streamResponse);
+      } else {
+        // Handle JSON body
+        response = await _httpClient.put(
+          uri,
+          headers: _buildHeaders(),
+          body: body != null ? jsonEncode(body) : null,
+        );
+      }
+
       return _handleResponse(response);
     } on CLServerException {
       rethrow;
@@ -97,14 +118,35 @@ class HttpClientWrapper {
     String endpoint, {
     Map<String, dynamic>? body,
     Map<String, String>? queryParameters,
+    bool isFormData = false,
   }) async {
     try {
       final uri = _buildUri(endpoint, queryParameters);
-      final response = await _httpClient.patch(
-        uri,
-        headers: _buildHeaders(),
-        body: body != null ? jsonEncode(body) : null,
-      );
+      late final http.Response response;
+
+      if (isFormData) {
+        // Handle form data
+        final request = http.MultipartRequest('PATCH', uri);
+        request.headers.addAll(_buildHeaders());
+        if (body != null) {
+          body.forEach((key, value) {
+            // Convert all values to String for form data
+            if (value != null) {
+              request.fields[key] = value.toString();
+            }
+          });
+        }
+        final streamResponse = await _httpClient.send(request);
+        response = await http.Response.fromStream(streamResponse);
+      } else {
+        // Handle JSON body
+        response = await _httpClient.patch(
+          uri,
+          headers: _buildHeaders(),
+          body: body != null ? jsonEncode(body) : null,
+        );
+      }
+
       return _handleResponse(response);
     } on CLServerException {
       rethrow;

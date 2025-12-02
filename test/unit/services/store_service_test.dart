@@ -5,11 +5,11 @@ import 'package:test/test.dart';
 class MockHttpClient extends http.BaseClient {
   MockHttpClient(this.responses);
   final Map<String, http.Response> responses;
-  late http.Request lastRequest;
+  late http.BaseRequest lastRequest;
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    lastRequest = request as http.Request;
+    lastRequest = request;
     final key = '${request.method} ${request.url}';
     final response = responses[key];
 
@@ -34,7 +34,7 @@ void main() {
   group('StoreService Tests', () {
     test('listEntities returns EntityListResponse', () async {
       final mockClient = MockHttpClient({
-        'GET http://localhost:8001/entities?page=1&page_size=20': http.Response(
+        'GET $storeServiceBaseUrl/entity/?page=1&page_size=20': http.Response(
           '''
 {
             "items": [{
@@ -59,7 +59,10 @@ void main() {
         ),
       });
 
-      final storeService = StoreService(httpClient: mockClient);
+      final storeService = StoreService(
+        baseUrl: storeServiceBaseUrl,
+        httpClient: mockClient,
+      );
       final response = await storeService.listEntities();
 
       expect(response.items, hasLength(1));
@@ -69,7 +72,7 @@ void main() {
 
     test('getEntity returns Entity by ID', () async {
       final mockClient = MockHttpClient({
-        'GET http://localhost:8001/entities/1': http.Response(
+        'GET $storeServiceBaseUrl/entity/1': http.Response(
           '''
 {
             "id": 1,
@@ -84,7 +87,10 @@ void main() {
         ),
       });
 
-      final storeService = StoreService(httpClient: mockClient);
+      final storeService = StoreService(
+        baseUrl: storeServiceBaseUrl,
+        httpClient: mockClient,
+      );
       final entity = await storeService.getEntity(1);
 
       expect(entity.id, 1);
@@ -93,13 +99,16 @@ void main() {
 
     test('getEntity throws ResourceNotFoundException on 404', () async {
       final mockClient = MockHttpClient({
-        'GET http://localhost:8001/entities/999': http.Response(
+        'GET $storeServiceBaseUrl/entity/999': http.Response(
           '{"detail": "Entity not found"}',
           404,
         ),
       });
 
-      final storeService = StoreService(httpClient: mockClient);
+      final storeService = StoreService(
+        baseUrl: storeServiceBaseUrl,
+        httpClient: mockClient,
+      );
 
       expect(
         () => storeService.getEntity(999),
@@ -109,7 +118,7 @@ void main() {
 
     test('getVersions returns list of EntityVersion', () async {
       final mockClient = MockHttpClient({
-        'GET http://localhost:8001/entities/1/versions': http.Response(
+        'GET $storeServiceBaseUrl/entity/1/versions': http.Response(
           '''
 [{
             "version": 1,
@@ -123,7 +132,10 @@ void main() {
         ),
       });
 
-      final storeService = StoreService(httpClient: mockClient);
+      final storeService = StoreService(
+        baseUrl: storeServiceBaseUrl,
+        httpClient: mockClient,
+      );
       final versions = await storeService.getVersions(1);
 
       expect(versions, hasLength(1));
@@ -133,7 +145,7 @@ void main() {
 
     test('createEntity returns created Entity', () async {
       final mockClient = MockHttpClient({
-        'POST http://localhost:8001/entities': http.Response(
+        'POST $storeServiceBaseUrl/entity/': http.Response(
           '''
           {
             "id": 2,
@@ -149,6 +161,7 @@ void main() {
       });
 
       final storeService = StoreService(
+        baseUrl: storeServiceBaseUrl,
         token: 'test-token',
         httpClient: mockClient,
       );
@@ -163,13 +176,16 @@ void main() {
 
     test('createEntity throws PermissionException on 403', () async {
       final mockClient = MockHttpClient({
-        'POST http://localhost:8001/entities': http.Response(
+        'POST $storeServiceBaseUrl/entity/': http.Response(
           '{"detail": "Not enough permissions"}',
           403,
         ),
       });
 
-      final storeService = StoreService(httpClient: mockClient);
+      final storeService = StoreService(
+        baseUrl: storeServiceBaseUrl,
+        httpClient: mockClient,
+      );
 
       expect(
         () => storeService.createEntity(isCollection: false),
@@ -179,7 +195,7 @@ void main() {
 
     test('updateEntity returns updated Entity', () async {
       final mockClient = MockHttpClient({
-        'PUT http://localhost:8001/entities/1': http.Response(
+        'PUT $storeServiceBaseUrl/entity/1': http.Response(
           '''
 {
             "id": 1,
@@ -195,6 +211,7 @@ void main() {
       });
 
       final storeService = StoreService(
+        baseUrl: storeServiceBaseUrl,
         token: 'test-token',
         httpClient: mockClient,
       );
@@ -209,7 +226,7 @@ void main() {
 
     test('patchEntity returns patched Entity', () async {
       final mockClient = MockHttpClient({
-        'PATCH http://localhost:8001/entities/1': http.Response(
+        'PATCH $storeServiceBaseUrl/entity/1': http.Response(
           '''
 {
             "id": 1,
@@ -225,6 +242,7 @@ void main() {
       });
 
       final storeService = StoreService(
+        baseUrl: storeServiceBaseUrl,
         token: 'test-token',
         httpClient: mockClient,
       );
@@ -238,10 +256,11 @@ void main() {
 
     test('deleteEntity completes successfully', () async {
       final mockClient = MockHttpClient({
-        'DELETE http://localhost:8001/entities/1': http.Response('', 204),
+        'DELETE $storeServiceBaseUrl/entity/1': http.Response('', 204),
       });
 
       final storeService = StoreService(
+        baseUrl: storeServiceBaseUrl,
         token: 'test-token',
         httpClient: mockClient,
       );
@@ -251,13 +270,14 @@ void main() {
 
     test('deleteCollection returns response', () async {
       final mockClient = MockHttpClient({
-        'DELETE http://localhost:8001/entities/collection': http.Response(
+        'DELETE $storeServiceBaseUrl/entity/collection': http.Response(
           '{"message": "All entities deleted successfully"}',
           200,
         ),
       });
 
       final storeService = StoreService(
+        baseUrl: storeServiceBaseUrl,
         token: 'test-token',
         httpClient: mockClient,
       );
@@ -268,7 +288,7 @@ void main() {
 
     test('getConfig returns StoreConfig', () async {
       final mockClient = MockHttpClient({
-        'GET http://localhost:8001/config': http.Response(
+        'GET $storeServiceBaseUrl/admin/config': http.Response(
           '''
 {
             "read_auth_enabled": false,
@@ -280,6 +300,7 @@ void main() {
       });
 
       final storeService = StoreService(
+        baseUrl: storeServiceBaseUrl,
         token: 'test-token',
         httpClient: mockClient,
       );
@@ -291,7 +312,7 @@ void main() {
 
     test('updateReadAuthConfig returns updated StoreConfig', () async {
       final mockClient = MockHttpClient({
-        'PUT http://localhost:8001/config/read-auth': http.Response(
+        'PUT $storeServiceBaseUrl/admin/config/read-auth': http.Response(
           '''
 {
             "read_auth_enabled": true,
@@ -303,6 +324,7 @@ void main() {
       });
 
       final storeService = StoreService(
+        baseUrl: storeServiceBaseUrl,
         token: 'test-token',
         httpClient: mockClient,
       );

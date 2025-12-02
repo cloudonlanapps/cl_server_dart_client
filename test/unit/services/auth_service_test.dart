@@ -2,8 +2,6 @@ import 'package:cl_server_dart_client/cl_server_dart_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
-import '../../server_addr.dart' show authServiceUrl;
-
 class MockHttpClient extends http.BaseClient {
   MockHttpClient(this.responses);
   final Map<String, http.Response> responses;
@@ -36,14 +34,14 @@ void main() {
   group('AuthService Tests', () {
     test('generateToken returns TokenResponse on success', () async {
       final mockClient = MockHttpClient({
-        'POST $authServiceUrl/auth/token': http.Response(
+        'POST $authServiceBaseUrl/auth/token': http.Response(
           '{"access_token": "test-token", "token_type": "bearer"}',
           200,
         ),
       });
 
       final authService = AuthService(
-        baseUrl: authServiceUrl,
+        baseUrl: authServiceBaseUrl,
         httpClient: mockClient,
       );
       final token = await authService.generateToken(
@@ -57,14 +55,14 @@ void main() {
 
     test('generateToken throws AuthException on 401', () async {
       final mockClient = MockHttpClient({
-        'POST $authServiceUrl/auth/token': http.Response(
+        'POST $authServiceBaseUrl/auth/token': http.Response(
           '{"detail": "Invalid credentials"}',
           401,
         ),
       });
 
       final authService = AuthService(
-        baseUrl: authServiceUrl,
+        baseUrl: authServiceBaseUrl,
         httpClient: mockClient,
       );
 
@@ -76,14 +74,14 @@ void main() {
 
     test('getPublicKey returns PublicKeyResponse on success', () async {
       final mockClient = MockHttpClient({
-        'GET $authServiceUrl/auth/public-key': http.Response(
+        'GET $authServiceBaseUrl/auth/public-key': http.Response(
           '''{"public_key": "-----BEGIN PUBLIC KEY-----", "algorithm": "ES256"}''',
           200,
         ),
       });
 
       final authService = AuthService(
-        baseUrl: authServiceUrl,
+        baseUrl: authServiceBaseUrl,
         httpClient: mockClient,
       );
       final publicKey = await authService.getPublicKey();
@@ -94,14 +92,14 @@ void main() {
 
     test('getCurrentUser returns User on success with token', () async {
       final mockClient = MockHttpClient({
-        'GET $authServiceUrl/users/me': http.Response(
+        'GET $authServiceBaseUrl/users/me': http.Response(
           '''{"id": 1, "username": "admin", "is_admin": true, "is_active": true, "created_at": "2024-01-15T10:30:00", "permissions": ["*"]}''',
           200,
         ),
       });
 
       final authService = AuthService(
-        baseUrl: authServiceUrl,
+        baseUrl: authServiceBaseUrl,
         token: 'test-token',
         httpClient: mockClient,
       );
@@ -114,14 +112,14 @@ void main() {
 
     test('getCurrentUser throws AuthException on 401', () async {
       final mockClient = MockHttpClient({
-        'GET $authServiceUrl/users/me': http.Response(
+        'GET $authServiceBaseUrl/users/me': http.Response(
           '{"detail": "Not authenticated"}',
           401,
         ),
       });
 
       final authService = AuthService(
-        baseUrl: authServiceUrl,
+        baseUrl: authServiceBaseUrl,
         httpClient: mockClient,
       );
 
@@ -133,14 +131,14 @@ void main() {
 
     test('listUsers returns list of users', () async {
       final mockClient = MockHttpClient({
-        'GET $authServiceUrl/users/?skip=0&limit=100': http.Response(
+        'GET $authServiceBaseUrl/users/?skip=0&limit=100': http.Response(
           '''[{"id": 1, "username": "admin", "is_admin": true, "is_active": true, "created_at": "2024-01-15T10:30:00", "permissions": ["*"]}, {"id": 2, "username": "user", "is_admin": false, "is_active": true, "created_at": "2024-01-15T10:35:00", "permissions": ["read:data"]}]''',
           200,
         ),
       });
 
       final authService = AuthService(
-        baseUrl: authServiceUrl,
+        baseUrl: authServiceBaseUrl,
         token: 'test-token',
         httpClient: mockClient,
       );
@@ -153,14 +151,14 @@ void main() {
 
     test('getUser returns single user by ID', () async {
       final mockClient = MockHttpClient({
-        'GET $authServiceUrl/users/1': http.Response(
+        'GET $authServiceBaseUrl/users/1': http.Response(
           '''{"id": 1, "username": "admin", "is_admin": true, "is_active": true, "created_at": "2024-01-15T10:30:00", "permissions": ["*"]}''',
           200,
         ),
       });
 
       final authService = AuthService(
-        baseUrl: authServiceUrl,
+        baseUrl: authServiceBaseUrl,
         token: 'test-token',
         httpClient: mockClient,
       );
@@ -172,14 +170,14 @@ void main() {
 
     test('getUser throws ResourceNotFoundException on 404', () async {
       final mockClient = MockHttpClient({
-        'GET $authServiceUrl/users/999': http.Response(
+        'GET $authServiceBaseUrl/users/999': http.Response(
           '{"detail": "User not found"}',
           404,
         ),
       });
 
       final authService = AuthService(
-        baseUrl: authServiceUrl,
+        baseUrl: authServiceBaseUrl,
         token: 'test-token',
         httpClient: mockClient,
       );
@@ -192,14 +190,14 @@ void main() {
 
     test('createUser returns created user', () async {
       final mockClient = MockHttpClient({
-        'POST $authServiceUrl/users/': http.Response(
+        'POST $authServiceBaseUrl/users/': http.Response(
           '''{"id": 2, "username": "newuser", "is_admin": false, "is_active": true, "created_at": "2024-01-15T10:35:00", "permissions": ["read:data"]}''',
           201,
         ),
       });
 
       final authService = AuthService(
-        baseUrl: authServiceUrl,
+        baseUrl: authServiceBaseUrl,
         token: 'test-token',
         httpClient: mockClient,
       );
@@ -215,14 +213,14 @@ void main() {
 
     test('updateUser returns updated user', () async {
       final mockClient = MockHttpClient({
-        'PUT $authServiceUrl/users/2': http.Response(
+        'PUT $authServiceBaseUrl/users/2': http.Response(
           '''{"id": 2, "username": "newuser", "is_admin": true, "is_active": true, "created_at": "2024-01-15T10:35:00", "permissions": ["admin"]}''',
           200,
         ),
       });
 
       final authService = AuthService(
-        baseUrl: authServiceUrl,
+        baseUrl: authServiceBaseUrl,
         token: 'test-token',
         httpClient: mockClient,
       );
@@ -236,11 +234,11 @@ void main() {
 
     test('deleteUser completes successfully', () async {
       final mockClient = MockHttpClient({
-        'DELETE $authServiceUrl/users/2': http.Response('', 204),
+        'DELETE $authServiceBaseUrl/users/2': http.Response('', 204),
       });
 
       final authService = AuthService(
-        baseUrl: authServiceUrl,
+        baseUrl: authServiceBaseUrl,
         token: 'test-token',
         httpClient: mockClient,
       );
@@ -250,14 +248,14 @@ void main() {
 
     test('healthCheck returns response', () async {
       final mockClient = MockHttpClient({
-        'GET $authServiceUrl/': http.Response(
+        'GET $authServiceBaseUrl/': http.Response(
           '{"message": "authentication service is running"}',
           200,
         ),
       });
 
       final authService = AuthService(
-        baseUrl: authServiceUrl,
+        baseUrl: authServiceBaseUrl,
         httpClient: mockClient,
       );
       final response = await authService.healthCheck();

@@ -1,7 +1,6 @@
 import 'package:cl_server_dart_client/cl_server_dart_client.dart';
 import 'package:test/test.dart';
 
-import '../server_addr.dart' show authServiceUrl, storeServiceUrl;
 import 'health_check_test.dart';
 
 /// Test store permission levels via StoreManager
@@ -40,7 +39,7 @@ void main() {
       await adminSession.login(
         adminUsername,
         adminPassword,
-        authBaseUrl: authServiceUrl,
+        authBaseUrl: authServiceBaseUrl,
       );
 
       // Create admin user manager and store manager
@@ -51,7 +50,7 @@ void main() {
 
       adminStoreManager = await StoreManager.authenticated(
         sessionManager: adminSession,
-        baseUrl: storeServiceUrl,
+        baseUrl: storeServiceBaseUrl,
       );
 
       // Create test users with different permissions
@@ -101,33 +100,33 @@ void main() {
       await writeSession.login(
         '${testUserPrefix}write_user',
         'TestPass123',
-        authBaseUrl: authServiceUrl,
+        authBaseUrl: authServiceBaseUrl,
       );
       writeOnlyManager = await StoreManager.authenticated(
         sessionManager: writeSession,
-        baseUrl: storeServiceUrl,
+        baseUrl: storeServiceBaseUrl,
       );
 
       final readSession = SessionManager.initialize();
       await readSession.login(
         '${testUserPrefix}read_user',
         'TestPass123',
-        authBaseUrl: authServiceUrl,
+        authBaseUrl: authServiceBaseUrl,
       );
       readOnlyManager = await StoreManager.authenticated(
         sessionManager: readSession,
-        baseUrl: storeServiceUrl,
+        baseUrl: storeServiceBaseUrl,
       );
 
       final noneSession = SessionManager.initialize();
       await noneSession.login(
         '${testUserPrefix}none_user',
         'TestPass123',
-        authBaseUrl: authServiceUrl,
+        authBaseUrl: authServiceBaseUrl,
       );
       noPermissionsManager = await StoreManager.authenticated(
         sessionManager: noneSession,
-        baseUrl: storeServiceUrl,
+        baseUrl: storeServiceBaseUrl,
       );
     });
 

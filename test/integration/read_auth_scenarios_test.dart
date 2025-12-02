@@ -1,7 +1,6 @@
 import 'package:cl_server_dart_client/cl_server_dart_client.dart';
 import 'package:test/test.dart';
 
-import '../server_addr.dart' show authServiceUrl, storeServiceUrl;
 import 'health_check_test.dart';
 
 /// Test ReadAuth configuration scenarios via StoreManager
@@ -35,7 +34,7 @@ void main() {
       await adminSession.login(
         adminUsername,
         adminPassword,
-        authBaseUrl: authServiceUrl,
+        authBaseUrl: authServiceBaseUrl,
       );
 
       // Create admin managers
@@ -46,7 +45,7 @@ void main() {
 
       adminStoreManager = await StoreManager.authenticated(
         sessionManager: adminSession,
-        baseUrl: storeServiceUrl,
+        baseUrl: storeServiceBaseUrl,
       );
 
       // Get original read auth setting
@@ -56,7 +55,7 @@ void main() {
               as bool;
 
       // Create guest manager (no auth)
-      guestManager = StoreManager.guest(baseUrl: storeServiceUrl);
+      guestManager = StoreManager.guest(baseUrl: storeServiceBaseUrl);
 
       // Create test entity (as collection to avoid image requirement)
       final entityResult = await adminStoreManager.createEntity(

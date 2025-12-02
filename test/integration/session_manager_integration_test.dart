@@ -6,9 +6,9 @@ import 'package:test/test.dart';
 void main() {
   group('SessionManager Integration Tests - Live Servers', () {
     // Configuration for live servers
-    const authBaseUrl = 'http://localhost:8000';
-    const storeBaseUrl = 'http://localhost:8001';
-    const computeBaseUrl = 'http://localhost:8002';
+    const authBaseUrl = authServiceBaseUrl;
+    const storeBaseUrl = storeServiceBaseUrl;
+    const computeBaseUrl = computeServiceBaseUrl;
 
     // Test credentials
     const adminUsername = 'admin';
