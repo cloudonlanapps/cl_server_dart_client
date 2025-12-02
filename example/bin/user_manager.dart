@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print This is on example, we need print
+
 import 'dart:io';
 import 'package:args/args.dart';
 import 'package:cl_server_dart_client/cl_server_dart_client.dart';
@@ -5,7 +7,7 @@ import 'package:cl_server_dart_client/cl_server_dart_client.dart';
 /// CLI Utility for managing CL Server users
 ///
 /// Usage:
-///   dart run user_manager.dart [command] [options]
+///   dart run user_manager.dart `command` `option1` `option2` ...
 ///
 /// User Management Commands:
 ///   create-user              Create a new user
@@ -23,7 +25,7 @@ import 'package:cl_server_dart_client/cl_server_dart_client.dart';
 ///   menu                     Interactive menu (default)
 ///   help                     Show this help message
 ///
-/// Global Options:
+/// Global Options :
 ///   --auth-url         Auth service URL (default: http://localhost:8000)
 ///   --store-url        Store service URL (default: http://localhost:8001)
 ///   --username         Username (will prompt if not provided)
@@ -70,27 +72,50 @@ bool isUtilityCreatedUser(String username) {
 Future<void> main(List<String> args) async {
   try {
     final parser = ArgParser()
-      ..addOption('auth-url',
-          defaultsTo: 'http://localhost:8000',
-          help: 'Auth service URL')
-      ..addOption('store-url',
-          defaultsTo: 'http://localhost:8001',
-          help: 'Store service URL')
-      ..addOption('username', help: 'Username for admin login (alias: --admin-user)')
+      ..addOption(
+        'auth-url',
+        defaultsTo: 'http://localhost:8000',
+        help: 'Auth service URL',
+      )
+      ..addOption(
+        'store-url',
+        defaultsTo: 'http://localhost:8001',
+        help: 'Store service URL',
+      )
+      ..addOption(
+        'username',
+        help: 'Username for admin login (alias: --admin-user)',
+      )
       ..addOption('admin-user', help: 'Admin username (alias for --username)')
-      ..addOption('password', help: 'Password for admin login (alias: --admin-password)')
-      ..addOption('admin-password', help: 'Admin password (alias for --password)')
-      ..addOption('prefix',
-          defaultsTo: 't#',
-          help: 'Prefix for users created by this utility (internal use)')
+      ..addOption(
+        'password',
+        help: 'Password for admin login (alias: --admin-password)',
+      )
+      ..addOption(
+        'admin-password',
+        help: 'Admin password (alias for --password)',
+      )
+      ..addOption(
+        'prefix',
+        defaultsTo: 't#',
+        help: 'Prefix for users created by this utility (internal use)',
+      )
       ..addFlag('help', abbr: 'h', help: 'Show help message');
 
     // Parse arguments, separating global options from command args
     late ArgResults results;
     const knownCommands = [
-      'create-user', 'get-user', 'update-user', 'delete-user', 'list-users',
-      'get-user-permissions', 'get-store-config', 'update-read-auth', 'menu',
-      'login', 'help'
+      'create-user',
+      'get-user',
+      'update-user',
+      'delete-user',
+      'list-users',
+      'get-user-permissions',
+      'get-store-config',
+      'update-read-auth',
+      'menu',
+      'login',
+      'help',
     ];
 
     // Find if there's a known command in the args
@@ -104,7 +129,8 @@ Future<void> main(List<String> args) async {
     }
 
     // Parse global args separately from command args
-    final globalArgs = commandIndex != null ? args.sublist(0, commandIndex) : args;
+    final globalArgs =
+        commandIndex != null ? args.sublist(0, commandIndex) : args;
     final commandArgs =
         commandIndex != null ? args.sublist(commandIndex) : <String>[];
 
@@ -125,8 +151,12 @@ Future<void> main(List<String> args) async {
     sessionManager = SessionManager.initialize();
 
     // Get admin credentials (support both --username/--password and --admin-user/--admin-password)
-    String adminUsername = (results['username'] as String?) ?? (results['admin-user'] as String?) ?? '';
-    String adminPassword = (results['password'] as String?) ?? (results['admin-password'] as String?) ?? '';
+    var adminUsername = (results['username'] as String?) ??
+        (results['admin-user'] as String?) ??
+        '';
+    var adminPassword = (results['password'] as String?) ??
+        (results['admin-password'] as String?) ??
+        '';
 
     if (adminUsername.isEmpty) {
       stdout.write('Admin Username: ');
@@ -139,7 +169,7 @@ Future<void> main(List<String> args) async {
         if (stdin.hasTerminal) {
           stdin.echoMode = false;
         }
-      } catch (_) {
+      } on Exception catch (_) {
         // Ignore errors if not a TTY
       }
       adminPassword = stdin.readLineSync() ?? '';
@@ -147,7 +177,7 @@ Future<void> main(List<String> args) async {
         if (stdin.hasTerminal) {
           stdin.echoMode = true;
         }
-      } catch (_) {
+      } on Exception catch (_) {
         // Ignore errors if not a TTY
       }
       if (stdin.hasTerminal) {
@@ -164,7 +194,7 @@ Future<void> main(List<String> args) async {
         authBaseUrl: authServiceUrl,
       );
       print('✓ Logged in successfully as: ${sessionManager.currentUsername}\n');
-    } catch (e) {
+    } on Exception catch (e) {
       print('✗ Login failed: $e');
       exit(1);
     }
@@ -202,7 +232,7 @@ Future<void> main(List<String> args) async {
 
     // Cleanup
     await sessionManager.dispose();
-  } catch (e) {
+  } on Exception catch (e) {
     print('Error: $e');
     exit(1);
   }
@@ -210,7 +240,7 @@ Future<void> main(List<String> args) async {
 
 /// Show help message
 void printHelp(ArgParser parser) {
-  print('''
+  print(r'''
 CL Server User Manager CLI
 Version 1.0.0
 
@@ -280,9 +310,9 @@ Examples:
   dart run user_manager.dart get-store-config
 
   # Script usage with credentials (no interactive prompts)
-  dart run user_manager.dart \\
-    --admin-user admin \\
-    --admin-password mypass \\
+  dart run user_manager.dart \
+    --admin-user admin \
+    --admin-password mypass \
     create-user --username alice --password pass123
 
   # List only utility-created users
@@ -292,9 +322,9 @@ Examples:
   dart run user_manager.dart --admin-user admin --admin-password mypass list-users --all
 
   # Create user with custom prefix
-  dart run user_manager.dart \\
-    --admin-user admin --admin-password mypass \\
-    --prefix "script_" \\
+  dart run user_manager.dart \
+    --admin-user admin --admin-password mypass \
+    --prefix "script_" \
     create-user --username bob --password pass456
   ''');
 }
@@ -302,7 +332,7 @@ Examples:
 /// Interactive menu
 Future<void> showInteractiveMenu() async {
   while (true) {
-    print('\n' + '=' * 50);
+    print('\n${'=' * 50}');
     print('CL Server User Manager - Admin Dashboard');
     print('=' * 50);
     print('Logged in as: ${sessionManager.currentUsername}\n');
@@ -365,13 +395,13 @@ Future<void> createUserInteractive() async {
     if (stdin.hasTerminal) {
       stdin.echoMode = false;
     }
-  } catch (_) {}
+  } on Exception catch (_) {}
   final password = stdin.readLineSync() ?? '';
   try {
     if (stdin.hasTerminal) {
       stdin.echoMode = true;
     }
-  } catch (_) {}
+  } on Exception catch (_) {}
   if (stdin.hasTerminal) {
     stdout.writeln();
   }
@@ -385,7 +415,12 @@ Future<void> createUserInteractive() async {
   final adminInput = stdin.readLineSync()?.toLowerCase() ?? 'n';
   final isAdmin = adminInput == 'y';
 
-  await createUser(username, password, '', isAdmin);
+  await createUser(
+    username: username,
+    password: password,
+    email: '',
+    isAdmin: isAdmin,
+  );
 }
 
 /// Create user from command line args
@@ -398,8 +433,8 @@ Future<void> createUserCommand(List<String> args) async {
 
   final results = parser.parse(args);
 
-  String username = results['username'] as String? ?? '';
-  String password = results['password'] as String? ?? '';
+  var username = results['username'] as String? ?? '';
+  var password = results['password'] as String? ?? '';
   final email = results['email'] as String? ?? '';
   final isAdmin = results['admin'] as bool;
 
@@ -413,28 +448,33 @@ Future<void> createUserCommand(List<String> args) async {
       if (stdin.hasTerminal) {
         stdin.echoMode = false;
       }
-    } catch (_) {}
+    } on Exception catch (_) {}
     password = stdin.readLineSync() ?? '';
     try {
       if (stdin.hasTerminal) {
         stdin.echoMode = true;
       }
-    } catch (_) {}
+    } on Exception catch (_) {}
     if (stdin.hasTerminal) {
       stdout.writeln();
     }
   }
 
-  await createUser(username, password, email, isAdmin);
+  await createUser(
+    username: username,
+    password: password,
+    email: email,
+    isAdmin: isAdmin,
+  );
 }
 
 /// Create a new user
-Future<void> createUser(
-  String username,
-  String password,
-  String email,
-  bool isAdmin,
-) async {
+Future<void> createUser({
+  required String username,
+  required String password,
+  required String email,
+  required bool isAdmin,
+}) async {
   print('\n📝 Creating user: $username...');
 
   try {
@@ -446,7 +486,7 @@ Future<void> createUser(
     );
 
     if (result.isSuccess) {
-      final newUser = result.data;
+      final newUser = result.data as User;
       print('✓ User created successfully!');
       print('  - ID: ${newUser.id}');
       print('  - Username: ${removePrefix(newUser.username)}');
@@ -455,7 +495,7 @@ Future<void> createUser(
     } else {
       print('✗ ${result.error}');
     }
-  } catch (e) {
+  } on Exception catch (e) {
     print('✗ Failed to create user: $e');
   }
 }
@@ -479,13 +519,13 @@ Future<void> updateUserInteractive() async {
     if (stdin.hasTerminal) {
       stdin.echoMode = false;
     }
-  } catch (_) {}
+  } on Exception catch (_) {}
   final newPassword = stdin.readLineSync() ?? '';
   try {
     if (stdin.hasTerminal) {
       stdin.echoMode = true;
     }
-  } catch (_) {}
+  } on Exception catch (_) {}
   if (stdin.hasTerminal) {
     stdout.writeln();
   }
@@ -502,7 +542,12 @@ Future<void> updateUserInteractive() async {
   if (activeInput == 'y') isActive = true;
   if (activeInput == 'n') isActive = false;
 
-  await updateUser(userId, newPassword, isAdmin, isActive, null);
+  await updateUser(
+    userId,
+    newPassword,
+    isAdmin: isAdmin,
+    isActive: isActive,
+  );
 }
 
 /// Update user from command line args
@@ -538,17 +583,23 @@ Future<void> updateUserCommand(List<String> args) async {
   if (results['activate'] as bool) isActive = true;
   if (results['deactivate'] as bool) isActive = false;
 
-  await updateUser(userId, newPassword, isAdmin, isActive, permissions);
+  await updateUser(
+    userId,
+    newPassword,
+    isAdmin: isAdmin,
+    isActive: isActive,
+    permissions: permissions,
+  );
 }
 
 /// Update a user
 Future<void> updateUser(
   int userId,
-  String newPassword,
+  String newPassword, {
   bool? isAdmin,
   bool? isActive,
   List<String>? permissions,
-) async {
+}) async {
   print('\n📝 Updating user ID: $userId...');
 
   try {
@@ -561,7 +612,7 @@ Future<void> updateUser(
     );
 
     if (result.isSuccess) {
-      final updatedUser = result.data;
+      final updatedUser = result.data as User;
       print('✓ User updated successfully!');
       print('  - ID: ${updatedUser.id}');
       print('  - Username: ${removePrefix(updatedUser.username)}');
@@ -570,7 +621,7 @@ Future<void> updateUser(
     } else {
       print('✗ ${result.error}');
     }
-  } catch (e) {
+  } on Exception catch (e) {
     print('✗ Failed to update user: $e');
   }
 }
@@ -637,7 +688,7 @@ Future<void> deleteUser(int userId) async {
     } else {
       print('✗ ${result.error}');
     }
-  } catch (e) {
+  } on Exception catch (e) {
     print('✗ Failed to delete user: $e');
   }
 }
@@ -645,7 +696,11 @@ Future<void> deleteUser(int userId) async {
 /// List users, filtering by default to show only utility-created users
 /// Use --all flag to show all users
 Future<void> listUsersCommand([List<String> args = const []]) async {
-  final parser = ArgParser()..addFlag('all', help: 'Show all users (default shows only utility-created users)');
+  final parser = ArgParser()
+    ..addFlag(
+      'all',
+      help: 'Show all users (default shows only utility-created users)',
+    );
 
   final results = parser.parse(args);
   final showAll = results['all'] as bool;
@@ -655,8 +710,6 @@ Future<void> listUsersCommand([List<String> args = const []]) async {
   try {
     final result = await userManager.listUsers(
       options: UserListOptions(
-        skip: 0,
-        limit: 100,
         showAll: showAll,
       ),
     );
@@ -668,7 +721,7 @@ Future<void> listUsersCommand([List<String> args = const []]) async {
 
     final displayedUsers = result.data as List;
 
-    print('\n' + '=' * 70);
+    print('\n${'=' * 70}');
     final title = showAll ? 'All Users' : 'Utility-Created Users';
     print(title);
     print('=' * 70);
@@ -680,28 +733,37 @@ Future<void> listUsersCommand([List<String> args = const []]) async {
       }
     } else {
       // Print header
-      print('${padRight('ID', 5)} | ${padRight('Username', 20)} | ${padRight('Status', 15)} | Admin');
+      print(
+        '${padRight('ID', 5)} | ${padRight('Username', 20)} '
+        '| ${padRight('Status', 15)} | Admin',
+      );
       print('-' * 70);
 
-      for (final user in displayedUsers) {
+      for (final user in displayedUsers.map((e) => e as User)) {
         final adminBadge = user.isAdmin ? '✓ Yes' : 'No';
         final status = user.isActive ? '✓ Active' : '✗ Inactive';
         final displayUsername = removePrefix(user.username);
         final marker = isUtilityCreatedUser(user.username) ? '*' : '';
-        print('${padRight(user.id.toString(), 5)} | ${padRight('$displayUsername$marker', 20)} | ${padRight(status, 15)} | $adminBadge');
+        print(
+          '${padRight(user.id.toString(), 5)} '
+          '| ${padRight('$displayUsername$marker', 20)} '
+          '| ${padRight(status, 15)} | $adminBadge',
+        );
       }
 
       print('-' * 70);
       print('Total: ${displayedUsers.length} users');
-      if (!showAll && displayedUsers.length < result.data.length) {
-        print('(Showing utility-created users only. Use --all to see all ${result.data.length} users)');
+      if (!showAll && displayedUsers.length < (result.data as List).length) {
+        print(
+          '(Showing utility-created users only. Use --all to see all '
+          '${(result.data as List).length} users)',
+        );
       }
     }
-  } catch (e) {
+  } on Exception catch (e) {
     print('✗ Failed to fetch users: $e');
   }
 }
-
 
 /// Get user details interactively
 Future<void> getUserInteractive() async {
@@ -740,8 +802,8 @@ Future<void> getUser(int userId) async {
     final result = await userManager.getUser(userId: userId);
 
     if (result.isSuccess) {
-      final user = result.data;
-      print('\n' + '=' * 70);
+      final user = result.data as User;
+      print('\n${'=' * 70}');
       print('User Details');
       print('=' * 70);
       print('ID: ${user.id}');
@@ -752,7 +814,7 @@ Future<void> getUser(int userId) async {
     } else {
       print('✗ ${result.error}');
     }
-  } catch (e) {
+  } on Exception catch (e) {
     print('✗ Failed to fetch user: $e');
   }
 }
@@ -796,10 +858,12 @@ Future<void> getUserPermissions(int userId) async {
     if (result.isSuccess) {
       // Get user details to show username alongside permissions
       final userResult = await userManager.getUser(userId: userId);
-      final username = userResult.isSuccess ? removePrefix(userResult.data.username) : 'Unknown';
+      final username = userResult.isSuccess
+          ? removePrefix((userResult.data as User).username)
+          : 'Unknown';
 
       final permissions = result.data as List<String>;
-      print('\n' + '=' * 70);
+      print('\n${'=' * 70}');
       print('User: $username (ID: $userId)');
       print('=' * 70);
       print('Permissions:');
@@ -814,7 +878,7 @@ Future<void> getUserPermissions(int userId) async {
     } else {
       print('✗ ${result.error}');
     }
-  } catch (e) {
+  } on Exception catch (e) {
     print('✗ Failed to fetch user permissions: $e');
   }
 }
@@ -827,8 +891,8 @@ Future<void> getStoreConfigCommand() async {
     final result = await userManager.getStoreConfig();
 
     if (result.isSuccess) {
-      final config = result.data;
-      print('\n' + '=' * 70);
+      final config = result.data as StoreConfig;
+      print('\n${'=' * 70}');
       print('Store Configuration');
       print('=' * 70);
       final readAuthStatus = config.readAuthEnabled ? 'Enabled' : 'Disabled';
@@ -841,12 +905,14 @@ Future<void> getStoreConfigCommand() async {
     } else {
       print('✗ ${result.error}');
       print(
-          '⚠️  Note: /admin/config endpoint may not be implemented on the server');
+        '⚠️  Note: /admin/config endpoint may not be implemented on the server',
+      );
     }
-  } catch (e) {
+  } on Exception catch (e) {
     print('✗ Failed to fetch store configuration: $e');
     print(
-        '⚠️  Note: /admin/config endpoint may not be implemented on the server');
+      '⚠️  Note: /admin/config endpoint may not be implemented on the server',
+    );
   }
 }
 
@@ -858,18 +924,21 @@ Future<void> updateReadAuthInteractive() async {
   try {
     final configResult = await userManager.getStoreConfig();
     if (configResult.isSuccess) {
-      final currentConfig = configResult.data;
-      print('Current Read Authentication: ${currentConfig.readAuthEnabled ? 'Enabled' : 'Disabled'}');
+      final currentConfig = configResult.data as StoreConfig;
+      print(
+        'Current Read Authentication: '
+        '${currentConfig.readAuthEnabled ? 'Enabled' : 'Disabled'}',
+      );
 
       stdout.write('\nEnable read authentication? (y/n): ');
       final input = stdin.readLineSync()?.toLowerCase() ?? 'n';
       final enabled = input == 'y';
 
-      await updateReadAuthConfig(enabled);
+      await updateReadAuthConfig(enabled: enabled);
     } else {
       print('✗ Error: ${configResult.error}');
     }
-  } catch (e) {
+  } on Exception catch (e) {
     print('✗ Error: $e');
   }
 }
@@ -896,21 +965,21 @@ Future<void> updateReadAuthCommand(List<String> args) async {
       return;
     }
 
-    await updateReadAuthConfig(enableFlag);
-  } catch (e) {
+    await updateReadAuthConfig(enabled: enableFlag);
+  } on Exception catch (e) {
     print('✗ Error parsing arguments: $e');
   }
 }
 
 /// Update read auth configuration in store
-Future<void> updateReadAuthConfig(bool enabled) async {
+Future<void> updateReadAuthConfig({required bool enabled}) async {
   print('\n⚙️  Updating read authentication configuration...');
 
   try {
     final result = await userManager.updateReadAuth(enabled: enabled);
 
     if (result.isSuccess) {
-      final updatedConfig = result.data;
+      final updatedConfig = result.data as StoreConfig;
       print('✓ Read authentication updated successfully!');
       final status = updatedConfig.readAuthEnabled ? 'Enabled' : 'Disabled';
       print('  - Status: $status');
@@ -923,7 +992,7 @@ Future<void> updateReadAuthConfig(bool enabled) async {
       print('⚠️  Note: /admin/config/read-auth endpoint may not be fully'
           ' implemented on the server');
     }
-  } catch (e) {
+  } on Exception catch (e) {
     print('✗ Failed to update read authentication: $e');
     print('⚠️  Note: /admin/config/read-auth endpoint may not be fully'
         ' implemented on the server');

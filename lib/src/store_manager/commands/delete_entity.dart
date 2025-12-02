@@ -21,7 +21,6 @@ class DeleteEntityCommand {
 
       return StoreOperationResult(
         success: 'Entity deleted successfully',
-        data: null,
       );
     } on PermissionException catch (e) {
       return StoreOperationResult(
@@ -35,9 +34,9 @@ class DeleteEntityCommand {
       return StoreOperationResult(
         error: 'Server error: ${e.message}',
       );
-    } catch (e) {
+    } on Exception catch (e) {
       return StoreOperationResult(
-        error: 'Failed to delete entity: ${e.toString()}',
+        error: 'Failed to delete entity: $e',
       );
     }
   }

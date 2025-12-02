@@ -35,9 +35,9 @@ class ReadEntityCommand {
       return StoreOperationResult(
         error: 'Server error: ${e.message}',
       );
-    } catch (e) {
+    } on Exception catch (e) {
       return StoreOperationResult(
-        error: 'Failed to read entity: ${e.toString()}',
+        error: 'Failed to read entity: $e',
       );
     }
   }

@@ -1,7 +1,7 @@
 /// Utilities for managing user name prefixes
 ///
-/// The user manager automatically prefixes usernames created through this utility
-/// to distinguish them from system users and users created manually.
+/// The user manager automatically prefixes usernames created through this
+/// utility to distinguish them from system users and users created manually.
 class UserPrefixUtils {
   /// Common prefix patterns used by this utility and predecessors
   static const List<String> commonPrefixes = ['t#', 'test_', 'cli_', 'util_'];
@@ -30,7 +30,8 @@ class UserPrefixUtils {
 
   /// Check if a user was created by this utility
   ///
-  /// Checks if the username has the current prefix or any common alternative prefix.
+  /// Checks if the username has the current prefix
+  /// or any common alternative prefix.
   static bool isUtilityCreatedUser(String username, String prefix) {
     // First check current prefix
     if (username.startsWith(prefix)) {

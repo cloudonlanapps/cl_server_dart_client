@@ -29,7 +29,7 @@ class GetStoreConfigCommand {
       );
     } on Exception catch (e) {
       return UserOperationResult(
-        error: 'Failed to retrieve store config: ${e.toString()}',
+        error: 'Failed to retrieve store config: $e',
       );
     }
   }

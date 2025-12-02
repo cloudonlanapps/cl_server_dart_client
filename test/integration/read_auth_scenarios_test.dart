@@ -51,7 +51,8 @@ void main() {
       // Get original read auth setting
       final configResult = await adminManager.getStoreConfig();
       originalReadAuthSetting =
-          (configResult.data.readAuthEnabled as dynamic) as bool;
+          ((configResult.data as StoreConfig).readAuthEnabled as dynamic)
+              as bool;
 
       // Create guest manager (no auth)
       guestManager = StoreManager.guest(baseUrl: storeServiceUrl);
@@ -65,7 +66,7 @@ void main() {
       if (!entityResult.isSuccess || entityResult.data == null) {
         throw Exception('Failed to create test entity: ${entityResult.error}');
       }
-      testEntityId = (entityResult.data.id as dynamic) as int;
+      testEntityId = (entityResult.data as Entity).id;
     });
 
     tearDownAll(() async {
@@ -155,7 +156,14 @@ void main() {
 
         expect(result.isError, isTrue);
         expect(result.error, isNotNull);
-        expect(result.error, anyOf(contains('Unauthorized'), contains('401'), contains('Authentication')));
+        expect(
+          result.error,
+          anyOf(
+            contains('Unauthorized'),
+            contains('401'),
+            contains('Authentication'),
+          ),
+        );
       });
 
       test('❌ Guest cannot read entity details (401)', () async {
@@ -163,11 +171,20 @@ void main() {
 
         expect(result.isError, isTrue);
         expect(result.error, isNotNull);
-        expect(result.error, anyOf(contains('Unauthorized'), contains('401'), contains('Authentication')));
+        expect(
+          result.error,
+          anyOf(
+            contains('Unauthorized'),
+            contains('401'),
+            contains('Authentication'),
+          ),
+        );
       });
 
       test('✅ Authenticated admin can still read', () async {
-        final result = await adminStoreManager.readEntity(entityId: testEntityId);
+        final result = await adminStoreManager.readEntity(
+          entityId: testEntityId,
+        );
 
         expect(result.isSuccess, isTrue);
         expect(result.error, isNull);
@@ -184,7 +201,7 @@ void main() {
 
         // Cleanup
         await adminStoreManager.deleteEntity(
-          entityId: (createResult.data.id as dynamic) as int,
+          entityId: (createResult.data as Entity).id,
         );
       });
     });
@@ -214,9 +231,13 @@ void main() {
         expect(result.isError, isTrue);
         expect(
           result.error,
-          anyOf(contains('Unauthorized'), contains('401'), contains(
-            'Authentication',
-          )),
+          anyOf(
+            contains('Unauthorized'),
+            contains('401'),
+            contains(
+              'Authentication',
+            ),
+          ),
         );
       });
 
@@ -235,7 +256,7 @@ void main() {
       tearDown(() async {
         // Ensure read auth is disabled at end
         final configResult = await adminManager.getStoreConfig();
-        if ((configResult.data.readAuthEnabled as dynamic) as bool) {
+        if ((configResult.data as StoreConfig).readAuthEnabled) {
           try {
             await adminManager.updateReadAuth(enabled: false);
           } on Exception {
@@ -251,7 +272,7 @@ void main() {
 
         expect(result.isSuccess, isTrue);
         expect(result.data, isNotNull);
-        expect(result.data.readAuthEnabled, isA<bool>());
+        expect((result.data as StoreConfig).readAuthEnabled, isA<bool>());
       });
 
       test('✅ Can enable ReadAuth', () async {

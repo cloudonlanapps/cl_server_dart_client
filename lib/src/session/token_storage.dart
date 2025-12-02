@@ -12,16 +12,15 @@ import 'session_exceptions.dart';
 /// For production Flutter apps, consider extending this class to use
 /// `shared_preferences` or `flutter_secure_storage`.
 class TokenStorage {
+  /// Create a token storage instance
+  TokenStorage() {
+    _initializeEncryption();
+  }
   // In-memory storage
   late final Map<String, String> _cache = <String, String>{};
 
   late final encrypt.Key _encryptionKey;
   late final encrypt.IV _iv;
-
-  /// Create a token storage instance
-  TokenStorage() {
-    _initializeEncryption();
-  }
 
   /// Initialize encryption key for password storage
   void _initializeEncryption() {
@@ -30,9 +29,10 @@ class TokenStorage {
       // For now, use a simple derived key from a salt
       final keyString = _generateEncryptionKey();
       _encryptionKey = encrypt.Key.fromUtf8(keyString);
-      // Create a fixed IV based on a constant seed (not random for reproducibility)
+      // Create a fixed IV based on a constant seed
+      // (not random for reproducibility)
       _iv = encrypt.IV(Uint8List.fromList(List<int>.filled(16, 0)));
-    } catch (e) {
+    } on Exception catch (e) {
       throw PasswordEncryptionException('Failed to initialize encryption: $e');
     }
   }
@@ -61,7 +61,7 @@ class TokenStorage {
     try {
       _cache[_usernameKey] = username;
       _cache[_tokenKey] = token;
-    } catch (e) {
+    } on Exception catch (e) {
       throw TokenStorageException('Failed to save token: $e');
     }
   }
@@ -70,7 +70,7 @@ class TokenStorage {
   Future<String?> getToken() async {
     try {
       return _cache[_tokenKey];
-    } catch (e) {
+    } on Exception catch (e) {
       throw TokenStorageException('Failed to retrieve token: $e');
     }
   }
@@ -79,7 +79,7 @@ class TokenStorage {
   Future<String?> getUsername() async {
     try {
       return _cache[_usernameKey];
-    } catch (e) {
+    } on Exception catch (e) {
       throw TokenStorageException('Failed to retrieve username: $e');
     }
   }
@@ -92,7 +92,7 @@ class TokenStorage {
       final timestamp = int.tryParse(timestampStr);
       if (timestamp == null) return null;
       return DateTime.fromMillisecondsSinceEpoch(timestamp);
-    } catch (e) {
+    } on Exception catch (e) {
       throw TokenStorageException('Failed to retrieve refresh time: $e');
     }
   }
@@ -100,9 +100,9 @@ class TokenStorage {
   /// Update the last refresh time to now
   Future<void> updateRefreshTime() async {
     try {
-      _cache[_refreshTimeKey] =
-          DateTime.now().millisecondsSinceEpoch.toString();
-    } catch (e) {
+      _cache[_refreshTimeKey] = DateTime.now().millisecondsSinceEpoch
+          .toString();
+    } on Exception catch (e) {
       throw TokenStorageException('Failed to update refresh time: $e');
     }
   }
@@ -111,7 +111,7 @@ class TokenStorage {
   Future<void> updateToken(String newToken) async {
     try {
       _cache[_tokenKey] = newToken;
-    } catch (e) {
+    } on Exception catch (e) {
       throw TokenStorageException('Failed to update token: $e');
     }
   }
@@ -126,7 +126,7 @@ class TokenStorage {
       final encryptedString =
           '${encrypted.base64}:${_iv.base64}'; // Store IV with cipher
       _cache[_encryptedPasswordKey] = encryptedString;
-    } catch (e) {
+    } on Exception catch (e) {
       throw PasswordEncryptionException('Failed to encrypt password: $e');
     }
   }
@@ -145,11 +145,13 @@ class TokenStorage {
       final ivString = parts[1];
 
       final encrypter = encrypt.Encrypter(encrypt.AES(_encryptionKey));
-      final decrypted =
-          encrypter.decrypt64(cipherText, iv: encrypt.IV.fromBase64(ivString));
+      final decrypted = encrypter.decrypt64(
+        cipherText,
+        iv: encrypt.IV.fromBase64(ivString),
+      );
       // Handle empty string special case
       return decrypted == '___EMPTY___' ? '' : decrypted;
-    } catch (e) {
+    } on Exception catch (e) {
       throw PasswordEncryptionException('Failed to decrypt password: $e');
     }
   }
@@ -162,7 +164,7 @@ class TokenStorage {
         ..remove(_tokenKey)
         ..remove(_encryptedPasswordKey)
         ..remove(_refreshTimeKey);
-    } catch (e) {
+    } on Exception catch (e) {
       throw TokenStorageException('Failed to clear token: $e');
     }
   }
@@ -171,7 +173,7 @@ class TokenStorage {
   Future<void> clearPassword() async {
     try {
       _cache.remove(_encryptedPasswordKey);
-    } catch (e) {
+    } on Exception catch (e) {
       throw TokenStorageException('Failed to clear password: $e');
     }
   }

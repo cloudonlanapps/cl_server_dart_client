@@ -19,8 +19,6 @@ void main() {
           isLoggedIn: true,
           username: 'testuser',
           token: 'test_token_123',
-          error: null,
-          lastRefreshTime: null,
         );
 
         expect(state.isLoggedIn, true);
@@ -69,8 +67,7 @@ void main() {
       });
 
       test('updates username in copyWith', () {
-        const original =
-            SessionState(isLoggedIn: true, username: 'olduser');
+        const original = SessionState(isLoggedIn: true, username: 'olduser');
         final updated = original.copyWith(username: 'newuser');
 
         expect(updated.username, 'newuser');
@@ -78,8 +75,7 @@ void main() {
       });
 
       test('updates token in copyWith', () {
-        const original =
-            SessionState(isLoggedIn: true, token: 'old_token');
+        const original = SessionState(isLoggedIn: true, token: 'old_token');
         final updated = original.copyWith(token: 'new_token');
 
         expect(updated.token, 'new_token');
@@ -87,16 +83,14 @@ void main() {
       });
 
       test('updates error in copyWith', () {
-        const original =
-            SessionState(isLoggedIn: false, error: 'old error');
+        const original = SessionState(isLoggedIn: false, error: 'old error');
         final updated = original.copyWith(error: 'new error');
 
         expect(updated.error, 'new error');
       });
 
       test('preserves error when not specified in copyWith', () {
-        const original =
-            SessionState(isLoggedIn: false, error: 'some error');
+        const original = SessionState(isLoggedIn: false, error: 'some error');
         final updated = original.copyWith(isLoggedIn: true);
 
         // copyWith preserves error since it uses ?? operator
@@ -107,8 +101,7 @@ void main() {
         final now = DateTime.now();
         final later = now.add(const Duration(hours: 1));
 
-        final original =
-            SessionState(isLoggedIn: true, lastRefreshTime: now);
+        final original = SessionState(isLoggedIn: true, lastRefreshTime: now);
         final updated = original.copyWith(lastRefreshTime: later);
 
         expect(updated.lastRefreshTime, later);
@@ -120,7 +113,6 @@ void main() {
           isLoggedIn: true,
           username: 'user1',
           token: 'token1',
-          error: null,
         );
 
         final updated = original.copyWith(
@@ -147,10 +139,11 @@ void main() {
           token: 'token1',
         );
 
-        original.copyWith(username: 'user2', token: 'token2');
+        final state1 = original.copyWith(username: 'user2', token: 'token2');
 
         expect(original.username, 'user1');
         expect(original.token, 'token1');
+        expect(identical(state1, original), false);
       });
 
       test('multiple copyWith calls produce different instances', () {
@@ -171,7 +164,6 @@ void main() {
           isLoggedIn: true,
           username: 'user1',
           token: 'token1',
-          error: null,
           lastRefreshTime: now,
         );
 
@@ -179,7 +171,6 @@ void main() {
           isLoggedIn: true,
           username: 'user1',
           token: 'token1',
-          error: null,
           lastRefreshTime: now,
         );
 

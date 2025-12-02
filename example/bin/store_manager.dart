@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print for demo
+
 import 'dart:async';
 import 'dart:io';
 
@@ -10,25 +12,37 @@ late StoreManager storeManager;
 void main(List<String> args) async {
   // Parse global options
   final globalParser = ArgParser()
-    ..addOption('auth-url',
-        defaultsTo: 'http://localhost:8000',
-        help: 'Auth service URL')
-    ..addOption('store-url',
-        defaultsTo: 'http://localhost:8001',
-        help: 'Store service URL')
-    ..addOption('username',
-        abbr: 'u',
-        help: 'Username (for authenticated mode)')
-    ..addOption('password',
-        abbr: 'p',
-        help: 'Password (for authenticated mode)')
-    ..addFlag('guest',
-        defaultsTo: true,
-        help: 'Use guest mode (default) or authenticated')
-    ..addFlag('help',
-        abbr: 'h',
-        negatable: false,
-        help: 'Show help');
+    ..addOption(
+      'auth-url',
+      defaultsTo: 'http://localhost:8000',
+      help: 'Auth service URL',
+    )
+    ..addOption(
+      'store-url',
+      defaultsTo: 'http://localhost:8001',
+      help: 'Store service URL',
+    )
+    ..addOption(
+      'username',
+      abbr: 'u',
+      help: 'Username (for authenticated mode)',
+    )
+    ..addOption(
+      'password',
+      abbr: 'p',
+      help: 'Password (for authenticated mode)',
+    )
+    ..addFlag(
+      'guest',
+      defaultsTo: true,
+      help: 'Use guest mode (default) or authenticated',
+    )
+    ..addFlag(
+      'help',
+      abbr: 'h',
+      negatable: false,
+      help: 'Show help',
+    );
 
   try {
     final results = globalParser.parse(args);
@@ -50,13 +64,15 @@ void main(List<String> args) async {
       final password = results['password'] as String?;
 
       if (username == null || password == null) {
-        stderr.writeln('❌ Error: --username and --password required for authenticated mode');
+        stderr.writeln(
+          '❌ Error: --username and --password required for authenticated mode',
+        );
         exit(1);
       }
 
       try {
         final authUrl = results['auth-url'] as String;
-        final sessionManager = await SessionManager.initialize();
+        final sessionManager = SessionManager.initialize();
         await sessionManager.login(
           username,
           password,
@@ -66,7 +82,7 @@ void main(List<String> args) async {
           sessionManager: sessionManager,
           baseUrl: storeUrl,
         );
-      } catch (e) {
+      } on Exception catch (e) {
         stderr.writeln('❌ Authentication failed: $e');
         exit(1);
       }
@@ -106,7 +122,7 @@ void main(List<String> args) async {
   } on FormatException catch (e) {
     stderr.writeln('❌ Error: ${e.message}');
     exit(1);
-  } catch (e) {
+  } on Exception catch (e) {
     stderr.writeln('❌ Unexpected error: $e');
     exit(1);
   }
@@ -115,14 +131,20 @@ void main(List<String> args) async {
 /// Handle list-entities command
 Future<void> handleListEntities(List<String> args) async {
   final parser = ArgParser()
-    ..addOption('page',
-        defaultsTo: '1',
-        help: 'Page number')
-    ..addOption('page-size',
-        defaultsTo: '20',
-        help: 'Items per page')
-    ..addOption('search',
-        help: 'Search query');
+    ..addOption(
+      'page',
+      defaultsTo: '1',
+      help: 'Page number',
+    )
+    ..addOption(
+      'page-size',
+      defaultsTo: '20',
+      help: 'Items per page',
+    )
+    ..addOption(
+      'search',
+      help: 'Search query',
+    );
 
   try {
     final results = parser.parse(args);
@@ -144,10 +166,10 @@ Future<void> handleListEntities(List<String> args) async {
     print('✅ ${result.success}');
     // Data is EntityListResponse
     if (result.data != null) {
-      print('   Total items: ${result.data!.totalItems}');
-      print('   Total pages: ${result.data!.totalPages}');
+      print('   Total items: ${(result.data as PaginationInfo).totalItems}');
+      print('   Total pages: ${(result.data as PaginationInfo).totalPages}');
     }
-  } catch (e) {
+  } on Exception catch (e) {
     stderr.writeln('❌ Error: $e');
     exit(1);
   }
@@ -156,20 +178,30 @@ Future<void> handleListEntities(List<String> args) async {
 /// Handle create-entity command
 Future<void> handleCreateEntity(List<String> args) async {
   final parser = ArgParser()
-    ..addOption('file',
-        help: 'File or directory path')
-    ..addOption('label',
-        help: 'Entity label')
-    ..addOption('description',
-        help: 'Entity description')
-    ..addOption('parent',
-        help: 'Parent collection label')
-    ..addOption('parent-id',
-        help: 'Parent collection ID')
-    ..addFlag('collection',
-        negatable: true,
-        defaultsTo: false,
-        help: 'Create as collection');
+    ..addOption(
+      'file',
+      help: 'File or directory path',
+    )
+    ..addOption(
+      'label',
+      help: 'Entity label',
+    )
+    ..addOption(
+      'description',
+      help: 'Entity description',
+    )
+    ..addOption(
+      'parent',
+      help: 'Parent collection label',
+    )
+    ..addOption(
+      'parent-id',
+      help: 'Parent collection ID',
+    )
+    ..addFlag(
+      'collection',
+      help: 'Create as collection',
+    );
 
   try {
     final results = parser.parse(args);
@@ -181,10 +213,10 @@ Future<void> handleCreateEntity(List<String> args) async {
     }
 
     final file = File(filePath);
-    final isDir = await file.exists() &&
-        (await FileSystemEntity.isDirectory(filePath));
+    final isDir =
+        file.existsSync() && (FileSystemEntity.isDirectorySync(filePath));
 
-    if (!await file.exists()) {
+    if (!file.existsSync()) {
       stderr.writeln('❌ Error: File or directory not found: $filePath');
       exit(1);
     }
@@ -202,7 +234,7 @@ Future<void> handleCreateEntity(List<String> args) async {
         description: results['description'] as String?,
         isCollection: results['collection'] as bool,
         parentLabel: results['parent'] as String?,
-        collectionId: results['parent-id'] as String?,
+        parentId: results['parent-id'] as String?,
       );
 
       if (result.isError) {
@@ -212,10 +244,10 @@ Future<void> handleCreateEntity(List<String> args) async {
 
       print('✅ ${result.success}');
       if (result.data != null) {
-        print('   ID: ${result.data!.id}');
+        print('   ID: ${(result.data as Entity).id}');
       }
     }
-  } catch (e) {
+  } on Exception catch (e) {
     stderr.writeln('❌ Error: $e');
     exit(1);
   }
@@ -224,8 +256,10 @@ Future<void> handleCreateEntity(List<String> args) async {
 /// Handle read-entity command
 Future<void> handleReadEntity(List<String> args) async {
   final parser = ArgParser()
-    ..addOption('id',
-        help: 'Entity ID');
+    ..addOption(
+      'id',
+      help: 'Entity ID',
+    );
 
   try {
     final results = parser.parse(args);
@@ -251,10 +285,10 @@ Future<void> handleReadEntity(List<String> args) async {
 
     print('✅ ${result.success}');
     if (result.data != null) {
-      print('   ID: ${result.data!.id}');
-      print('   Label: ${result.data!.label}');
+      print('   ID: ${(result.data as Entity).id}');
+      print('   Label: ${(result.data as Entity).label}');
     }
-  } catch (e) {
+  } on Exception catch (e) {
     stderr.writeln('❌ Error: $e');
     exit(1);
   }
@@ -263,14 +297,22 @@ Future<void> handleReadEntity(List<String> args) async {
 /// Handle update-entity command
 Future<void> handleUpdateEntity(List<String> args) async {
   final parser = ArgParser()
-    ..addOption('id',
-        help: 'Entity ID')
-    ..addOption('label',
-        help: 'New label')
-    ..addOption('description',
-        help: 'New description')
-    ..addFlag('collection',
-        help: 'Is collection');
+    ..addOption(
+      'id',
+      help: 'Entity ID',
+    )
+    ..addOption(
+      'label',
+      help: 'New label',
+    )
+    ..addOption(
+      'description',
+      help: 'New description',
+    )
+    ..addFlag(
+      'collection',
+      help: 'Is collection',
+    );
 
   try {
     final results = parser.parse(args);
@@ -308,7 +350,7 @@ Future<void> handleUpdateEntity(List<String> args) async {
     }
 
     print('✅ ${result.success}');
-  } catch (e) {
+  } on Exception catch (e) {
     stderr.writeln('❌ Error: $e');
     exit(1);
   }
@@ -317,12 +359,18 @@ Future<void> handleUpdateEntity(List<String> args) async {
 /// Handle patch-entity command
 Future<void> handlePatchEntity(List<String> args) async {
   final parser = ArgParser()
-    ..addOption('id',
-        help: 'Entity ID')
-    ..addOption('label',
-        help: 'New label')
-    ..addOption('description',
-        help: 'New description');
+    ..addOption(
+      'id',
+      help: 'Entity ID',
+    )
+    ..addOption(
+      'label',
+      help: 'New label',
+    )
+    ..addOption(
+      'description',
+      help: 'New description',
+    );
 
   try {
     final results = parser.parse(args);
@@ -351,7 +399,7 @@ Future<void> handlePatchEntity(List<String> args) async {
     }
 
     print('✅ ${result.success}');
-  } catch (e) {
+  } on Exception catch (e) {
     stderr.writeln('❌ Error: $e');
     exit(1);
   }
@@ -360,11 +408,15 @@ Future<void> handlePatchEntity(List<String> args) async {
 /// Handle delete-entity command
 Future<void> handleDeleteEntity(List<String> args) async {
   final parser = ArgParser()
-    ..addOption('id',
-        help: 'Entity ID')
-    ..addFlag('force',
-        negatable: false,
-        help: 'Skip confirmation');
+    ..addOption(
+      'id',
+      help: 'Entity ID',
+    )
+    ..addFlag(
+      'force',
+      negatable: false,
+      help: 'Skip confirmation',
+    );
 
   try {
     final results = parser.parse(args);
@@ -383,7 +435,9 @@ Future<void> handleDeleteEntity(List<String> args) async {
 
     // Ask for confirmation unless --force
     if (!(results['force'] as bool)) {
-      stdout.write('Are you sure you want to delete entity $entityId? (yes/no): ');
+      stdout.write(
+        'Are you sure you want to delete entity $entityId? (yes/no): ',
+      );
       final confirmation = stdin.readLineSync()?.toLowerCase() ?? '';
       if (confirmation != 'yes' && confirmation != 'y') {
         print('Cancelled.');
@@ -399,7 +453,7 @@ Future<void> handleDeleteEntity(List<String> args) async {
     }
 
     print('✅ ${result.success}');
-  } catch (e) {
+  } on Exception catch (e) {
     stderr.writeln('❌ Error: $e');
     exit(1);
   }
@@ -417,7 +471,7 @@ Future<void> _handleDirectoryRecursive(
   print('📁 Processing directory: ${dir.path}');
   print('   Collection: $parentLabel');
 
-  int fileCount = 0;
+  var fileCount = 0;
 
   // List all files and directories
   try {
@@ -430,7 +484,6 @@ Future<void> _handleDirectoryRecursive(
         final result = await storeManager.createEntity(
           label: p.basename(entity.path),
           description: 'File: $relativePath',
-          isCollection: false,
           parentLabel: parentLabel,
         );
 
@@ -447,7 +500,7 @@ Future<void> _handleDirectoryRecursive(
     } else {
       print('✅ Processed $fileCount files');
     }
-  } catch (e) {
+  } on Exception catch (e) {
     stderr.writeln('❌ Directory processing error: $e');
     exit(1);
   }

@@ -52,8 +52,9 @@ void main() {
     group('Refresh Strategy', () {
       test('refreshStrategy setter updates strategy', () {
         // Should not throw
-        manager.refreshStrategy = TokenRefreshStrategy.reLogin;
-        manager.refreshStrategy = TokenRefreshStrategy.refreshEndpoint;
+        manager
+          ..refreshStrategy = TokenRefreshStrategy.reLogin
+          ..refreshStrategy = TokenRefreshStrategy.refreshEndpoint;
       });
     });
 
@@ -169,13 +170,13 @@ void main() {
         var count1 = 0;
         var count2 = 0;
 
-        manager.onSessionStateChanged((_) {
-          count1++;
-        });
-
-        manager.onSessionStateChanged((_) {
-          count2++;
-        });
+        manager
+          ..onSessionStateChanged((_) {
+            count1++;
+          })
+          ..onSessionStateChanged((_) {
+            count2++;
+          });
 
         expect(count1, greaterThanOrEqualTo(1));
         expect(count2, greaterThanOrEqualTo(1));

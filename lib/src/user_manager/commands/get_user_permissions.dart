@@ -37,7 +37,7 @@ class GetUserPermissionsCommand {
       );
     } on Exception catch (e) {
       return UserOperationResult(
-        error: 'Failed to retrieve permissions: ${e.toString()}',
+        error: 'Failed to retrieve permissions: $e',
       );
     }
   }

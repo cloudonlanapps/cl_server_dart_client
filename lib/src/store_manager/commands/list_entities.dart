@@ -43,9 +43,9 @@ class ListEntitiesCommand {
       return StoreOperationResult(
         error: 'Server error: ${e.message}',
       );
-    } catch (e) {
+    } on Exception catch (e) {
       return StoreOperationResult(
-        error: 'Failed to list entities: ${e.toString()}',
+        error: 'Failed to list entities: $e',
       );
     }
   }

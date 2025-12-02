@@ -4,7 +4,8 @@ import '../models/result_model.dart';
 
 /// Command to patch an entity in store
 ///
-/// PATCH allows partial updates: only entityId is required, plus at least one field to patch
+/// PATCH allows partial updates: only entityId is required,
+/// plus at least one field to patch
 class PatchEntityCommand {
   PatchEntityCommand(this._storeService);
 
@@ -26,7 +27,8 @@ class PatchEntityCommand {
   }) async {
     try {
       // Validate that at least one field is provided to patch
-      final hasFieldsToPatch = label != null ||
+      final hasFieldsToPatch =
+          label != null ||
           description != null ||
           parentId != null ||
           isDeleted != null;
@@ -50,7 +52,7 @@ class PatchEntityCommand {
         success: 'Entity patched successfully',
         data: entity,
       );
-    } on PermissionException catch (e) {
+    } on PermissionException catch (_) {
       return StoreOperationResult(
         error: 'Permission denied: media_store_write permission required',
       );
@@ -66,9 +68,9 @@ class PatchEntityCommand {
       return StoreOperationResult(
         error: 'Server error: ${e.message}',
       );
-    } catch (e) {
+    } on Exception catch (e) {
       return StoreOperationResult(
-        error: 'Failed to patch entity: ${e.toString()}',
+        error: 'Failed to patch entity: $e',
       );
     }
   }

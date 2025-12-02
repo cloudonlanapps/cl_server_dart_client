@@ -48,7 +48,7 @@ class UpdateEntityCommand {
         success: 'Entity updated successfully',
         data: entity,
       );
-    } on PermissionException catch (e) {
+    } on PermissionException catch (_) {
       return StoreOperationResult(
         error: 'Permission denied: media_store_write permission required',
       );
@@ -64,9 +64,9 @@ class UpdateEntityCommand {
       return StoreOperationResult(
         error: 'Server error: ${e.message}',
       );
-    } catch (e) {
+    } on Exception catch (e) {
       return StoreOperationResult(
-        error: 'Failed to update entity: ${e.toString()}',
+        error: 'Failed to update entity: $e',
       );
     }
   }

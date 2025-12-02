@@ -6,7 +6,8 @@ import 'health_check_test.dart';
 /// Test admin user operations via UserManager
 ///
 /// Tests admin-level operations that should succeed with full permissions.
-/// Verifies user creation, permission management, and store configuration access.
+/// Verifies user creation, permission management, and
+/// store configuration access.
 
 const String adminUsername = 'admin';
 const String adminPassword = 'admin';
@@ -44,8 +45,8 @@ void main() {
       if (createdTestUserId > 0) {
         try {
           await userManager.deleteUser(userId: createdTestUserId);
-        } catch (e) {
-          // Ignore cleanup errors
+        } on Exception catch (_) {
+          /* Ignore cleanup errors*/
         }
       }
 
@@ -57,16 +58,15 @@ void main() {
       final result = await userManager.createUser(
         username: 'testuser1',
         password: 'TestPass123',
-        isAdmin: false,
         permissions: ['media_store_read'],
       );
 
       expect(result.isSuccess, isTrue);
       expect(result.error, isNull);
       expect(result.data, isNotNull);
-      expect(result.data.username, contains(testUserPrefix));
+      expect((result.data as User).username, contains(testUserPrefix));
 
-      createdTestUserId = result.data.id;
+      createdTestUserId = (result.data as User).id;
     });
 
     test('✅ Admin can get user details', () async {
@@ -74,10 +74,9 @@ void main() {
       final createResult = await userManager.createUser(
         username: 'testuser2',
         password: 'TestPass123',
-        isAdmin: false,
       );
       expect(createResult.isSuccess, isTrue);
-      final testUserId = createResult.data.id;
+      final testUserId = (createResult.data as User).id;
 
       // Then get user details
       final result = await userManager.getUser(userId: testUserId);
@@ -85,7 +84,7 @@ void main() {
       expect(result.isSuccess, isTrue);
       expect(result.error, isNull);
       expect(result.data, isNotNull);
-      expect(result.data.id, equals(testUserId));
+      expect((result.data as User).id, equals(testUserId));
 
       // Cleanup
       await userManager.deleteUser(userId: testUserId);
@@ -94,8 +93,6 @@ void main() {
     test('✅ Admin can list users (all users)', () async {
       final result = await userManager.listUsers(
         options: UserListOptions(
-          skip: 0,
-          limit: 100,
           showAll: true,
         ),
       );
@@ -103,8 +100,8 @@ void main() {
       expect(result.isSuccess, isTrue);
       expect(result.error, isNull);
       expect(result.data, isNotNull);
-      expect(result.data, isA<List>());
-      expect(result.data.length, greaterThan(0));
+      expect(result.data, isA<List<User>>());
+      expect((result.data as List<User>).length, greaterThan(0));
     });
 
     test('✅ Admin can list utility-created users only', () async {
@@ -112,18 +109,13 @@ void main() {
       final createResult = await userManager.createUser(
         username: 'utilityuser1',
         password: 'TestPass123',
-        isAdmin: false,
       );
       expect(createResult.isSuccess, isTrue);
-      final testUserId = createResult.data.id;
+      final testUserId = (createResult.data as User).id;
 
       // List utility-created users only
       final result = await userManager.listUsers(
-        options: UserListOptions(
-          skip: 0,
-          limit: 100,
-          showAll: false,
-        ),
+        options: UserListOptions(),
       );
 
       expect(result.isSuccess, isTrue);
@@ -139,11 +131,10 @@ void main() {
       final createResult = await userManager.createUser(
         username: 'updateuser1',
         password: 'TestPass123',
-        isAdmin: false,
         permissions: [],
       );
       expect(createResult.isSuccess, isTrue);
-      final testUserId = createResult.data.id;
+      final testUserId = (createResult.data as User).id;
 
       // Update permissions
       final result = await userManager.updateUser(
@@ -164,11 +155,10 @@ void main() {
       final createResult = await userManager.createUser(
         username: 'permuser1',
         password: 'TestPass123',
-        isAdmin: false,
         permissions: ['media_store_read', 'media_store_write'],
       );
       expect(createResult.isSuccess, isTrue);
-      final testUserId = createResult.data.id;
+      final testUserId = (createResult.data as User).id;
 
       // Get user permissions
       final result = await userManager.getUserPermissions(userId: testUserId);
@@ -187,10 +177,9 @@ void main() {
       final createResult = await userManager.createUser(
         username: 'deleteuser1',
         password: 'TestPass123',
-        isAdmin: false,
       );
       expect(createResult.isSuccess, isTrue);
-      final testUserId = createResult.data.id;
+      final testUserId = (createResult.data as User).id;
 
       // Delete user
       final result = await userManager.deleteUser(userId: testUserId);
@@ -211,11 +200,12 @@ void main() {
       // Get current config
       final currentResult = await userManager.getStoreConfig();
       expect(currentResult.isSuccess, isTrue);
-      final wasEnabled = currentResult.data.readAuthEnabled;
+      final wasEnabled = (currentResult.data as StoreConfig).readAuthEnabled;
 
       try {
         // Update read auth - may fail due to API response format issues
         final result = await userManager.updateReadAuth(enabled: !wasEnabled);
+        expect(result.isSuccess, isTrue);
 
         // Even if the response parsing fails, the action was likely performed
         // Verify by checking config directly
@@ -223,11 +213,15 @@ void main() {
         expect(verifyResult.isSuccess, isTrue);
         // Updated value should be different from original
         // (unless update failed silently)
+        expect(
+          (currentResult.data as StoreConfig).readAuthEnabled,
+          !wasEnabled,
+        );
       } finally {
         // Restore original setting
         try {
           await userManager.updateReadAuth(enabled: wasEnabled);
-        } catch (e) {
+        } on Exception catch (_) {
           // Ignore restore errors
         }
       }

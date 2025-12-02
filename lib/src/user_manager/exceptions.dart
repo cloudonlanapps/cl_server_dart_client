@@ -15,22 +15,22 @@ abstract class UserManagerException implements Exception {
 /// Invalid user data (validation error)
 class InvalidUserException extends UserManagerException {
   InvalidUserException({
-    String message = 'Invalid user data',
-    int? statusCode = 422,
-  }) : super(message: message, statusCode: statusCode);
+    super.message = 'Invalid user data',
+    super.statusCode = 422,
+  });
 }
 
 /// User not found (404)
 class UserNotFoundException extends UserManagerException {
   UserNotFoundException({
-    String message = 'User not found',
-    int? statusCode = 404,
-  }) : super(message: message, statusCode: statusCode);
+    super.message = 'User not found',
+    super.statusCode = 404,
+  });
 }
 
 /// Operation not allowed
 class OperationNotAllowedException extends UserManagerException {
   OperationNotAllowedException({
-    String message = 'Operation not allowed',
-  }) : super(message: message, statusCode: null);
+    super.message = 'Operation not allowed',
+  }) : super(statusCode: null);
 }

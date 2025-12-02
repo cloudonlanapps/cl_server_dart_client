@@ -34,7 +34,7 @@ class UpdateReadAuthCommand {
       );
     } on Exception catch (e) {
       return UserOperationResult(
-        error: 'Failed to update read auth config: ${e.toString()}',
+        error: 'Failed to update read auth config: $e',
       );
     }
   }

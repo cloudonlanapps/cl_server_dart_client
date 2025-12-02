@@ -77,8 +77,10 @@ void main() {
         final stored = await storage.getLastRefreshTime();
 
         expect(stored, isNotNull);
-        expect(stored!.isAfter(before.subtract(const Duration(seconds: 1))),
-            true);
+        expect(
+          stored!.isAfter(before.subtract(const Duration(seconds: 1))),
+          true,
+        );
         expect(stored.isBefore(after.add(const Duration(seconds: 1))), true);
       });
 
@@ -111,7 +113,8 @@ void main() {
         expect(decrypted, 'secret123');
       });
 
-      test('getDecryptedPassword returns null when no password stored', () async {
+      test('getDecryptedPassword returns null '
+          'when no password stored', () async {
         final password = await storage.getDecryptedPassword();
         expect(password, isNull);
       });
@@ -141,8 +144,7 @@ void main() {
       });
 
       test('password encryption handles special characters', () async {
-        const specialPass =
-            'p@ss!w0rd#123\$%^&*()_+-=[]{}|;:\'",.<>?/\\`~';
+        const specialPass = 'p@ss!w0rd#123\$%^&*()_+-=[]{}|;:\'",.<>?/\\`~';
         await storage.saveEncryptedPassword('user', specialPass);
 
         final decrypted = await storage.getDecryptedPassword();
@@ -192,11 +194,13 @@ void main() {
     });
 
     group('Error Handling', () {
-      test('handles corruption gracefully with clearPassword on empty cache',
-          () async {
-        // Should not throw
-        await storage.clearPassword();
-      });
+      test(
+        'handles corruption gracefully with clearPassword on empty cache',
+        () async {
+          // Should not throw
+          await storage.clearPassword();
+        },
+      );
 
       test('handles multiple clearToken calls', () async {
         await storage.saveToken('user', 'token');

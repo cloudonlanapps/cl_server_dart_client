@@ -1,9 +1,9 @@
 import 'package:test/test.dart';
 
 import 'health_check_test.dart' as health_check;
-import 'user_permission_levels_test.dart' as user_perms;
-import 'store_permission_levels_test.dart' as store_perms;
 import 'read_auth_scenarios_test.dart' as read_auth;
+import 'store_permission_levels_test.dart' as store_perms;
+import 'user_permission_levels_test.dart' as user_perms;
 
 /// Consolidated test runner for all permission level integration tests
 ///
@@ -27,8 +27,10 @@ void main() {
   group('Comprehensive Permission Test Suite', () {
     group('1. Health Checks', health_check.main);
     group('2. User Permission Levels - Admin Operations', user_perms.main);
-    group('3. Store Permission Levels - Permission Combinations',
-        store_perms.main);
+    group(
+      '3. Store Permission Levels - Permission Combinations',
+      store_perms.main,
+    );
     group('4. ReadAuth Scenarios - Guest Access Control', read_auth.main);
   });
 }

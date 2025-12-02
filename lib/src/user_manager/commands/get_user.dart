@@ -35,9 +35,9 @@ class GetUserCommand {
       return UserOperationResult(
         error: 'Server error: ${e.message}',
       );
-    } catch (e) {
+    } on Exception catch (e) {
       return UserOperationResult(
-        error: 'Failed to retrieve user: ${e.toString()}',
+        error: 'Failed to retrieve user: $e',
       );
     }
   }

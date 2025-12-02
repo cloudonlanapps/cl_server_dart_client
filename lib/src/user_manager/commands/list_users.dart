@@ -49,7 +49,7 @@ class ListUsersCommand {
       );
     } on Exception catch (e) {
       return UserOperationResult(
-        error: 'Failed to list users: ${e.toString()}',
+        error: 'Failed to list users: $e',
       );
     }
   }

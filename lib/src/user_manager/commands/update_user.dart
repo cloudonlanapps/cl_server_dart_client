@@ -55,7 +55,7 @@ class UpdateUserCommand {
       );
     } on Exception catch (e) {
       return UserOperationResult(
-        error: 'Failed to update user: ${e.toString()}',
+        error: 'Failed to update user: $e',
       );
     }
   }

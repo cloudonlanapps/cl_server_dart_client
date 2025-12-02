@@ -53,7 +53,7 @@ class CreateUserCommand {
       );
     } on Exception catch (e) {
       return UserOperationResult(
-        error: 'Failed to create user: ${e.toString()}',
+        error: 'Failed to create user: $e',
       );
     }
   }

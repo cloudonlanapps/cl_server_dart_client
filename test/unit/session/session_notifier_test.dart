@@ -82,7 +82,7 @@ void main() {
         );
 
         expect(
-          () => notifier.refreshToken(),
+          notifier.refreshToken,
           throwsA(isA<NotLoggedInException>()),
         );
       });
@@ -96,7 +96,7 @@ void main() {
         );
 
         expect(
-          () => notifier.getValidToken(),
+          notifier.getValidToken,
           throwsA(isA<NotLoggedInException>()),
         );
       });
@@ -124,14 +124,13 @@ void main() {
 
     group('Refresh Strategy', () {
       test('refreshStrategy setter changes strategy', () {
-        final notifier = SessionNotifier(
-          authService: authService,
-          storage: tokenStorage,
-        );
-
-        // Should not throw
-        notifier.refreshStrategy = TokenRefreshStrategy.reLogin;
-        notifier.refreshStrategy = TokenRefreshStrategy.refreshEndpoint;
+        SessionNotifier(
+            authService: authService,
+            storage: tokenStorage,
+          )
+          // Should not throw
+          ..refreshStrategy = TokenRefreshStrategy.reLogin
+          ..refreshStrategy = TokenRefreshStrategy.refreshEndpoint;
       });
     });
   });

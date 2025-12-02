@@ -21,7 +21,6 @@ class DeleteUserCommand {
 
       return UserOperationResult(
         success: 'User deleted successfully',
-        data: null,
       );
     } on PermissionException catch (e) {
       return UserOperationResult(
@@ -37,7 +36,7 @@ class DeleteUserCommand {
       );
     } on Exception catch (e) {
       return UserOperationResult(
-        error: 'Failed to delete user: ${e.toString()}',
+        error: 'Failed to delete user: $e',
       );
     }
   }

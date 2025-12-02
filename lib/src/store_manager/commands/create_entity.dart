@@ -13,18 +13,18 @@ class CreateEntityCommand {
   /// [label] - Optional entity label
   /// [description] - Optional entity description
   /// [isCollection] - Whether to create as collection (default: false)
-  /// [collectionId] - Numeric ID of parent collection
+  /// [parentId] - Numeric ID of parent collection
   /// [parentLabel] - Unique label of parent collection
-  ///
-  /// If [parentLabel] is provided, resolves collection by label or creates new one.
-  /// If [collectionId] is provided, uses it directly.
+  /// If [parentLabel] is provided, resolves collection by label
+  ///             or creates new one.
+  /// If [parentId] is provided, uses it directly.
   ///
   /// Returns StoreOperationResult with created entity or error
   Future<StoreOperationResult<dynamic>> execute({
     String? label,
     String? description,
     bool isCollection = false,
-    String? collectionId,
+    String? parentId,
     String? parentLabel,
   }) async {
     try {
@@ -32,11 +32,16 @@ class CreateEntityCommand {
       int? resolvedParentId;
 
       if (parentLabel != null) {
+        if (parentId != null) {
+          return StoreOperationResult(
+            error: "Can't use both parentId and parentLable. ",
+          );
+        }
         // Find collection by label (unique) or create if not exists
         resolvedParentId = await _resolveOrCreateCollection(parentLabel);
-      } else if (collectionId != null) {
+      } else if (parentId != null) {
         // Use provided collection ID directly
-        resolvedParentId = int.tryParse(collectionId);
+        resolvedParentId = int.tryParse(parentId);
       }
 
       // Create entity
@@ -51,7 +56,7 @@ class CreateEntityCommand {
         success: 'Entity created successfully',
         data: entity,
       );
-    } on PermissionException catch (e) {
+    } on PermissionException catch (_) {
       return StoreOperationResult(
         error: 'Permission denied: media_store_write permission required',
       );
@@ -63,9 +68,9 @@ class CreateEntityCommand {
       return StoreOperationResult(
         error: 'Server error: ${e.message}',
       );
-    } catch (e) {
+    } on Exception catch (e) {
       return StoreOperationResult(
-        error: 'Failed to create entity: ${e.toString()}',
+        error: 'Failed to create entity: $e',
       );
     }
   }

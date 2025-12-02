@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print we need to move to log later
+
 import 'package:cl_server_dart_client/cl_server_dart_client.dart';
 import 'package:test/test.dart';
 
@@ -16,12 +18,10 @@ void main() {
 
     late SessionManager adminManager;
     SessionManager? testUserManager;
-    late AuthService authService;
 
     setUpAll(() async {
       // Initialize with admin credentials
       adminManager = SessionManager.initialize();
-      authService = AuthService(baseUrl: authBaseUrl);
     });
 
     tearDownAll(() async {
@@ -42,7 +42,7 @@ void main() {
 
           expect(adminManager.isLoggedIn, true);
           expect(adminManager.currentUsername, adminUsername);
-        } catch (e) {
+        } on Exception catch (e) {
           fail('Admin login failed: $e');
         }
       });
@@ -52,23 +52,18 @@ void main() {
           final token = await adminManager.getValidToken();
           expect(token, isNotEmpty);
           expect(token.contains('.'), true); // JWT format check
-        } catch (e) {
+        } on Exception catch (e) {
           fail('Getting admin token failed: $e');
         }
       });
 
       test('Admin can create a test user', () async {
         try {
-          final adminToken = await adminManager.getValidToken();
-          final userService = AuthService(
-            baseUrl: authBaseUrl,
-            token: adminToken,
-          );
-
           // Note: Assuming server has user creation endpoint
           print('Test user would be created: $testUsername');
           // This would call actual user creation endpoint when available
-        } catch (e) {
+          // FIXME: Incomplete test
+        } on Exception catch (e) {
           // Skip if endpoint not available
           print('User creation not available: $e');
         }
@@ -87,7 +82,7 @@ void main() {
 
           expect(testUserManager!.isLoggedIn, true);
           expect(testUserManager!.currentUsername, testUsername);
-        } catch (e) {
+        } on Exception catch (e) {
           // Skip test if test user not available
           print('Test user not available: $e');
         }
@@ -104,7 +99,7 @@ void main() {
 
           manager.refreshStrategy = TokenRefreshStrategy.reLogin;
           expect(manager.refreshStrategy, TokenRefreshStrategy.reLogin);
-        } catch (e) {
+        } on Exception catch (e) {
           fail('Setting refresh strategy failed: $e');
         }
       }, skip: true);
@@ -121,10 +116,11 @@ void main() {
             );
           }
 
-          final storeService =
-              await adminManager.createStoreService(baseUrl: storeBaseUrl);
+          final storeService = await adminManager.createStoreService(
+            baseUrl: storeBaseUrl,
+          );
           expect(storeService, isNotNull);
-        } catch (e) {
+        } on Exception catch (e) {
           fail('Creating StoreService failed: $e');
         }
       });
@@ -139,14 +135,15 @@ void main() {
             );
           }
 
-          final storeService =
-              await adminManager.createStoreService(baseUrl: storeBaseUrl);
+          final storeService = await adminManager.createStoreService(
+            baseUrl: storeBaseUrl,
+          );
           final response = await storeService.listEntities();
 
           expect(response, isNotNull);
           expect(response.items, isNotNull);
           print('Listed ${response.items.length} entities');
-        } catch (e) {
+        } on Exception catch (e) {
           fail('Listing entities failed: $e');
         }
       });
@@ -161,8 +158,9 @@ void main() {
             );
           }
 
-          final storeService =
-              await adminManager.createStoreService(baseUrl: storeBaseUrl);
+          final storeService = await adminManager.createStoreService(
+            baseUrl: storeBaseUrl,
+          );
           final entity = await storeService.createEntity(
             isCollection: true,
             label: 'Integration Test Collection',
@@ -172,7 +170,7 @@ void main() {
           expect(entity, isNotNull);
           expect(entity.label, 'Integration Test Collection');
           print('Created entity: ${entity.id}');
-        } catch (e) {
+        } on Exception catch (e) {
           fail('Creating entity failed: $e');
         }
       });
@@ -189,10 +187,11 @@ void main() {
             );
           }
 
-          final computeService =
-              await adminManager.createComputeService(baseUrl: computeBaseUrl);
+          final computeService = await adminManager.createComputeService(
+            baseUrl: computeBaseUrl,
+          );
           expect(computeService, isNotNull);
-        } catch (e) {
+        } on Exception catch (e) {
           fail('Creating ComputeService failed: $e');
         }
       });
@@ -207,14 +206,15 @@ void main() {
             );
           }
 
-          final computeService =
-              await adminManager.createComputeService(baseUrl: computeBaseUrl);
+          final computeService = await adminManager.createComputeService(
+            baseUrl: computeBaseUrl,
+          );
           final response = await computeService.listWorkers();
 
           expect(response, isNotNull);
           expect(response.workers, isNotNull);
           print('Listed ${response.workers.length} workers');
-        } catch (e) {
+        } on Exception catch (e) {
           fail('Listing workers failed: $e');
         }
       });
@@ -229,8 +229,9 @@ void main() {
             );
           }
 
-          final computeService =
-              await adminManager.createComputeService(baseUrl: computeBaseUrl);
+          final computeService = await adminManager.createComputeService(
+            baseUrl: computeBaseUrl,
+          );
           final job = await computeService.createJob(
             taskType: 'test_task',
             metadata: {'test': 'integration_test'},
@@ -239,7 +240,7 @@ void main() {
           expect(job, isNotNull);
           expect(job.taskType, 'test_task');
           print('Created job: ${job.jobId}');
-        } catch (e) {
+        } on Exception catch (e) {
           fail('Creating job failed: $e');
         }
       });
@@ -256,10 +257,11 @@ void main() {
             );
           }
 
-          final authServiceInstance =
-              await adminManager.createAuthService(baseUrl: authBaseUrl);
+          final authServiceInstance = await adminManager.createAuthService(
+            baseUrl: authBaseUrl,
+          );
           expect(authServiceInstance, isNotNull);
-        } catch (e) {
+        } on Exception catch (e) {
           fail('Creating AuthService failed: $e');
         }
       });
@@ -274,14 +276,15 @@ void main() {
             );
           }
 
-          final authServiceInstance =
-              await adminManager.createAuthService(baseUrl: authBaseUrl);
+          final authServiceInstance = await adminManager.createAuthService(
+            baseUrl: authBaseUrl,
+          );
           final user = await authServiceInstance.getCurrentUser();
 
           expect(user, isNotNull);
           expect(user.username, adminUsername);
           print('Current user: ${user.username} (ID: ${user.id})');
-        } catch (e) {
+        } on Exception catch (e) {
           fail('Getting current user failed: $e');
         }
       });
@@ -301,10 +304,12 @@ void main() {
           final tokenBefore = await adminManager.getValidToken();
           await adminManager.refreshToken();
           final tokenAfter = await adminManager.getValidToken();
-
+          // FIXME  need to check tokenBefore and tokenAfter, both
+          // should be different
           expect(tokenAfter, isNotEmpty);
+          expect(tokenAfter, isNot(equals(tokenBefore)));
           print('Token refreshed successfully');
-        } catch (e) {
+        } on Exception catch (e) {
           // Token refresh might not be available on all servers
           print('Token refresh not available: $e');
         }
@@ -323,14 +328,16 @@ void main() {
           // Get a valid token
           final token = await adminManager.getValidToken();
           expect(token, isNotEmpty);
-
+          // FIXME: not sure if this test is doing what the title says.
+          //
           // Token auto-refresh is tested indirectly - if we can still use the
           // token after some operations, it means refresh worked (if needed)
-          final storeService =
-              await adminManager.createStoreService(baseUrl: storeBaseUrl);
+          final storeService = await adminManager.createStoreService(
+            baseUrl: storeBaseUrl,
+          );
           final response = await storeService.listEntities();
           expect(response, isNotNull);
-        } catch (e) {
+        } on Exception catch (e) {
           fail('Auto-refresh test failed: $e');
         }
       });
@@ -360,7 +367,7 @@ void main() {
 
           expect(manager.isLoggedIn, false);
           expect(manager.currentUsername, isNull);
-        } catch (e) {
+        } on Exception catch (e) {
           fail('Session state management failed: $e');
         }
       });
@@ -385,7 +392,7 @@ void main() {
 
           // Should have state changes (at least login and logout)
           expect(stateChanges, greaterThan(0));
-        } catch (e) {
+        } on Exception catch (e) {
           fail('Session state listener failed: $e');
         }
       });
@@ -404,24 +411,26 @@ void main() {
         } on AuthException {
           // Expected
           expect(true, true);
-        } catch (e) {
+        } on Exception catch (e) {
           fail('Wrong exception type: $e');
         }
       });
 
-      test('Getting valid token when not logged in throws NotLoggedInException',
-          () async {
-        try {
-          final manager = SessionManager.initialize();
-          await manager.getValidToken();
-          fail('Should have thrown NotLoggedInException');
-        } on NotLoggedInException {
-          // Expected
-          expect(true, true);
-        } catch (e) {
-          fail('Wrong exception type: $e');
-        }
-      });
+      test(
+        'Getting valid token when not logged in throws NotLoggedInException',
+        () async {
+          try {
+            final manager = SessionManager.initialize();
+            await manager.getValidToken();
+            fail('Should have thrown NotLoggedInException');
+          } on NotLoggedInException {
+            // Expected
+            expect(true, true);
+          } on Exception catch (e) {
+            fail('Wrong exception type: $e');
+          }
+        },
+      );
 
       test('Service call with invalid token throws AuthException', () async {
         try {
@@ -434,7 +443,7 @@ void main() {
         } on AuthException {
           // Expected
           expect(true, true);
-        } catch (e) {
+        } on Exception catch (e) {
           // Could also be other exception types depending on server
           print('Service error (expected): ${e.runtimeType}');
         }
@@ -455,8 +464,9 @@ void main() {
           print('✓ Logged in as $adminUsername');
 
           // Step 2: Create entity via Store Service
-          final storeService =
-              await manager.createStoreService(baseUrl: storeBaseUrl);
+          final storeService = await manager.createStoreService(
+            baseUrl: storeBaseUrl,
+          );
           final entity = await storeService.createEntity(
             isCollection: true,
             label: 'Test Workflow Collection',
@@ -465,8 +475,9 @@ void main() {
           print('✓ Created entity: ${entity.id}');
 
           // Step 3: Create job via Compute Service
-          final computeService =
-              await manager.createComputeService(baseUrl: computeBaseUrl);
+          final computeService = await manager.createComputeService(
+            baseUrl: computeBaseUrl,
+          );
           final job = await computeService.createJob(
             taskType: 'test_task',
             metadata: {
@@ -477,8 +488,9 @@ void main() {
           print('✓ Created job: ${job.jobId}');
 
           // Step 4: Verify user via Auth Service
-          final authService =
-              await manager.createAuthService(baseUrl: authBaseUrl);
+          final authService = await manager.createAuthService(
+            baseUrl: authBaseUrl,
+          );
           final user = await authService.getCurrentUser();
           print('✓ Verified user: ${user.username}');
 
@@ -487,7 +499,7 @@ void main() {
           print('✓ Logged out');
 
           expect(manager.isLoggedIn, false);
-        } catch (e) {
+        } on Exception catch (e) {
           fail('Multi-service workflow failed: $e');
         }
       });
