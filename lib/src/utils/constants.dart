@@ -1,7 +1,7 @@
 /// Default service base URLs
-const String authServiceBaseUrl = 'http://localhost:8000';
-const String storeServiceBaseUrl = 'http://localhost:8001';
-const String computeServiceBaseUrl = 'http://localhost:8002';
+const String authServiceBaseUrl = 'http://192.168.0.105:8000';
+const String storeServiceBaseUrl = 'http://192.168.0.105:8001';
+const String computeServiceBaseUrl = 'http://192.168.0.105:8002';
 
 /// Auth Service Endpoints
 class AuthServiceEndpoints {
@@ -48,7 +48,8 @@ class HttpHeaders {
   static const String contentType = 'content-type';
   static const String authorization = 'authorization';
   static const String applicationJson = 'application/json';
-  static const String applicationFormUrlEncoded = 'application/x-www-form-urlencoded';
+  static const String applicationFormUrlEncoded =
+      'application/x-www-form-urlencoded';
 }
 
 /// Common Query Parameters

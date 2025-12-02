@@ -351,11 +351,22 @@ class StoreConfig {
   });
 
   factory StoreConfig.fromJson(Map<String, dynamic> json) {
+    final updatedAtValue = json['updated_at'];
+    final DateTime updatedAt;
+
+    if (updatedAtValue == null) {
+      updatedAt = DateTime.now();
+    } else if (updatedAtValue is String) {
+      updatedAt = DateTime.parse(updatedAtValue);
+    } else if (updatedAtValue is int) {
+      updatedAt = DateTime.fromMillisecondsSinceEpoch(updatedAtValue);
+    } else {
+      updatedAt = DateTime.now();
+    }
+
     return StoreConfig(
       readAuthEnabled: json['read_auth_enabled'] as bool? ?? false,
-      updatedAt: json['updated_at'] is String
-          ? DateTime.parse(json['updated_at'] as String)
-          : DateTime.fromMillisecondsSinceEpoch(json['updated_at'] as int),
+      updatedAt: updatedAt,
       updatedBy: json['updated_by'] as String?,
     );
   }

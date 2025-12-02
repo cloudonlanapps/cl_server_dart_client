@@ -52,7 +52,7 @@ class HttpClientWrapper {
             }
           });
         }
-        final streamResponse = await request.send();
+        final streamResponse = await _httpClient.send(request);
         response = await http.Response.fromStream(streamResponse);
       } else {
         // Handle JSON body

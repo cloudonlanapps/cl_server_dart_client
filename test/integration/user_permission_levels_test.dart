@@ -16,7 +16,7 @@ const String testUserPrefix = 'test_perms_';
 
 late SessionManager sessionManager;
 late UserManager userManager;
-late int createdTestUserId;
+int? createdTestUserId;
 
 void main() {
   group('User Permission Levels - Admin Operations', () {
@@ -43,9 +43,9 @@ void main() {
 
     tearDownAll(() async {
       // Cleanup: Delete test user if created
-      if (createdTestUserId > 0) {
+      if (createdTestUserId != null) {
         try {
-          await userManager.deleteUser(userId: createdTestUserId);
+          await userManager.deleteUser(userId: createdTestUserId!);
         } on Exception catch (_) {
           /* Ignore cleanup errors*/
         }
@@ -215,7 +215,7 @@ void main() {
         // Updated value should be different from original
         // (unless update failed silently)
         expect(
-          (currentResult.data as StoreConfig).readAuthEnabled,
+          (verifyResult.data as StoreConfig).readAuthEnabled,
           !wasEnabled,
         );
       } finally {
