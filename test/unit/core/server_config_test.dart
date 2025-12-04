@@ -29,7 +29,8 @@ void main() {
     );
 
     test(
-      'getComputeServiceBaseUrl returns explicit value if computeServiceBaseUrl is provided',
+      'getComputeServiceBaseUrl returns explicit value '
+      'if computeServiceBaseUrl is provided',
       () {
         final config = ServerConfig(
           authServiceBaseUrl: 'http://localhost:8000',

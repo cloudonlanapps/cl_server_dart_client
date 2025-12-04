@@ -8,8 +8,10 @@ void main() {
   group('ComputeService Tests', () {
     test('createJob returns Job', () async {
       final mockClient = MockHttpClient({
-        'POST $computeServiceBaseUrl/job/image_resize': http.Response(
-          '''
+        // ignore: lines_longer_than_80_chars will become unreadable
+        'POST $computeServiceBaseUrl${ComputeServiceEndpoints.createJob.replaceAll('{task_type}', 'image_resize')}':
+            http.Response(
+              '''
           {
             "job_id": "job-123",
             "task_type": "image_resize",
@@ -22,8 +24,8 @@ void main() {
             "started_at": null,
             "completed_at": null
           }''',
-          201,
-        ),
+              201,
+            ),
       });
 
       final computeService = ComputeService(
@@ -50,8 +52,10 @@ void main() {
 
     test('getJobStatus returns Job', () async {
       final mockClient = MockHttpClient({
-        'GET $computeServiceBaseUrl/job/job-123': http.Response(
-          '''
+        // ignore: lines_longer_than_80_chars will become unreadable
+        'GET $computeServiceBaseUrl${ComputeServiceEndpoints.getJobStatus.replaceAll('{job_id}', 'job-123')}':
+            http.Response(
+              '''
 {
             "job_id": "job-123",
             "task_type": "image_resize",
@@ -64,8 +68,8 @@ void main() {
             "started_at": 1704067210,
             "completed_at": null
           }''',
-          200,
-        ),
+              200,
+            ),
       });
 
       final computeService = ComputeService(
@@ -81,10 +85,12 @@ void main() {
 
     test('getJobStatus throws ResourceNotFoundException on 404', () async {
       final mockClient = MockHttpClient({
-        'GET $computeServiceBaseUrl/job/nonexistent': http.Response(
-          '{"detail": "Job not found"}',
-          404,
-        ),
+        // ignore: lines_longer_than_80_chars will become unreadable
+        'GET $computeServiceBaseUrl${ComputeServiceEndpoints.getJobStatus.replaceAll('{job_id}', 'nonexistent')}':
+            http.Response(
+              '{"detail": "Job not found"}',
+              404,
+            ),
       });
 
       final computeService = ComputeService(
@@ -100,12 +106,14 @@ void main() {
 
     test('deleteJob completes successfully', () async {
       final mockClient = MockHttpClient({
-        'DELETE $computeServiceBaseUrl/job/job-123': http.Response(
-          '',
-          204,
-        ),
+        // ignore: lines_longer_than_80_chars will become unreadable
+        'DELETE $computeServiceBaseUrl${ComputeServiceEndpoints.deleteJob.replaceAll('{job_id}', 'job-123')}':
+            http.Response(
+              '',
+              204,
+            ),
       });
-
+      //compute/jobs/jobs-123
       final computeService = ComputeService(
         computeServiceBaseUrl,
         token: 'test-token',
@@ -117,10 +125,11 @@ void main() {
 
     test('getStorageSize returns StorageSize', () async {
       final mockClient = MockHttpClient({
-        'GET $computeServiceBaseUrl/job/admin/storage/size': http.Response(
-          '{"total_bytes": 1073741824, "total_mb": 1024.0, "job_count": 5}',
-          200,
-        ),
+        'GET $computeServiceBaseUrl${ComputeServiceEndpoints.getStorageSize}':
+            http.Response(
+              '{"total_bytes": 1073741824, "total_mb": 1024.0, "job_count": 5}',
+              200,
+            ),
       });
 
       final computeService = ComputeService(
@@ -137,7 +146,8 @@ void main() {
 
     test('cleanupOldJobs returns CleanupResponse', () async {
       final mockClient = MockHttpClient({
-        'DELETE $computeServiceBaseUrl/job/admin/cleanup?days=7': http.Response(
+        'DELETE $computeServiceBaseUrl'
+            '${ComputeServiceEndpoints.cleanupOldJobs}?days=7': http.Response(
           '''
 {
             "message": "All jobs older than 7 days deleted successfully",
@@ -160,7 +170,8 @@ void main() {
 
     test('cleanupOldJobs throws PermissionException on 403', () async {
       final mockClient = MockHttpClient({
-        'DELETE $computeServiceBaseUrl/job/admin/cleanup?days=7': http.Response(
+        'DELETE $computeServiceBaseUrl'
+            '${ComputeServiceEndpoints.cleanupOldJobs}?days=7': http.Response(
           '{"detail": "Not enough permissions"}',
           403,
         ),

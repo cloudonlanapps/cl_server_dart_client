@@ -15,26 +15,26 @@ class AuthServiceEndpoints {
 /// Store Service Endpoints
 class StoreServiceEndpoints {
   static const String health = '/';
-  static const String listEntities = '/entity/';
-  static const String createEntity = '/entity/';
-  static const String getEntity = '/entity/{entity_id}';
-  static const String updateEntity = '/entity/{entity_id}';
-  static const String patchEntity = '/entity/{entity_id}';
-  static const String deleteEntity = '/entity/{entity_id}';
-  static const String deleteCollection = '/entity/collection';
-  static const String getVersions = '/entity/{entity_id}/versions';
+  static const String listEntities = '/entities';
+  static const String createEntity = '/entities';
+  static const String getEntity = '/entities/{entity_id}';
+  static const String updateEntity = '/entities/{entity_id}';
+  static const String patchEntity = '/entities/{entity_id}';
+  static const String deleteEntity = '/entities/{entity_id}';
+  static const String deleteCollection = '/entities';
+  static const String getVersions = '/entities/{entity_id}/versions';
   static const String getConfig = '/admin/config';
   static const String updateReadAuthConfig = '/admin/config/read-auth';
 }
 
 /// Compute Service Endpoints
 class ComputeServiceEndpoints {
-  static const String createJob = '/job/{task_type}';
-  static const String getJobStatus = '/job/{job_id}';
-  static const String deleteJob = '/job/{job_id}';
-  static const String getCapabilities = '/job/capability';
-  static const String getStorageSize = '/job/admin/storage/size';
-  static const String cleanupOldJobs = '/job/admin/cleanup';
+  static const String createJob = '/compute/jobs/{task_type}';
+  static const String getJobStatus = '/compute/jobs/{job_id}';
+  static const String deleteJob = '/compute/jobs/{job_id}';
+  static const String getCapabilities = '/compute/capabilities';
+  static const String getStorageSize = '/admin/compute/jobs/storage/size';
+  static const String cleanupOldJobs = '/admin/compute/jobs/cleanup';
 }
 
 /// HTTP Headers

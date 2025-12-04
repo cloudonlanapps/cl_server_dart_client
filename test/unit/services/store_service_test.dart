@@ -8,7 +8,7 @@ void main() {
   group('StoreService Tests', () {
     test('listEntities returns EntityListResponse', () async {
       final mockClient = MockHttpClient({
-        'GET $storeServiceBaseUrl/entity/?page=1&page_size=20': http.Response(
+        'GET $storeServiceBaseUrl/entities?page=1&page_size=20': http.Response(
           '''
 {
             "items": [{
@@ -46,7 +46,7 @@ void main() {
 
     test('getEntity returns Entity by ID', () async {
       final mockClient = MockHttpClient({
-        'GET $storeServiceBaseUrl/entity/1': http.Response(
+        'GET $storeServiceBaseUrl/entities/1': http.Response(
           '''
 {
             "id": 1,
@@ -73,7 +73,7 @@ void main() {
 
     test('getEntity throws ResourceNotFoundException on 404', () async {
       final mockClient = MockHttpClient({
-        'GET $storeServiceBaseUrl/entity/999': http.Response(
+        'GET $storeServiceBaseUrl/entities/999': http.Response(
           '{"detail": "Entity not found"}',
           404,
         ),
@@ -92,7 +92,7 @@ void main() {
 
     test('getVersions returns list of EntityVersion', () async {
       final mockClient = MockHttpClient({
-        'GET $storeServiceBaseUrl/entity/1/versions': http.Response(
+        'GET $storeServiceBaseUrl/entities/1/versions': http.Response(
           '''
 [{
             "version": 1,
@@ -119,7 +119,7 @@ void main() {
 
     test('createEntity returns created Entity', () async {
       final mockClient = MockHttpClient({
-        'POST $storeServiceBaseUrl/entity/': http.Response(
+        'POST $storeServiceBaseUrl/entities': http.Response(
           '''
           {
             "id": 2,
@@ -150,7 +150,7 @@ void main() {
 
     test('createEntity throws PermissionException on 403', () async {
       final mockClient = MockHttpClient({
-        'POST $storeServiceBaseUrl/entity/': http.Response(
+        'POST $storeServiceBaseUrl/entities': http.Response(
           '{"detail": "Not enough permissions"}',
           403,
         ),
@@ -169,7 +169,7 @@ void main() {
 
     test('updateEntity returns updated Entity', () async {
       final mockClient = MockHttpClient({
-        'PUT $storeServiceBaseUrl/entity/1': http.Response(
+        'PUT $storeServiceBaseUrl/entities/1': http.Response(
           '''
 {
             "id": 1,
@@ -200,7 +200,7 @@ void main() {
 
     test('patchEntity returns patched Entity', () async {
       final mockClient = MockHttpClient({
-        'PATCH $storeServiceBaseUrl/entity/1': http.Response(
+        'PATCH $storeServiceBaseUrl/entities/1': http.Response(
           '''
 {
             "id": 1,
@@ -230,7 +230,7 @@ void main() {
 
     test('deleteEntity completes successfully', () async {
       final mockClient = MockHttpClient({
-        'DELETE $storeServiceBaseUrl/entity/1': http.Response('', 204),
+        'DELETE $storeServiceBaseUrl/entities/1': http.Response('', 204),
       });
 
       final storeService = StoreService(
@@ -242,11 +242,11 @@ void main() {
       expect(() => storeService.deleteEntity(1), returnsNormally);
     });
 
-    test('deleteCollection returns response', () async {
+    test('deleteCollection returns successfully', () async {
       final mockClient = MockHttpClient({
-        'DELETE $storeServiceBaseUrl/entity/collection': http.Response(
-          '{"message": "All entities deleted successfully"}',
-          200,
+        'DELETE $storeServiceBaseUrl/entities': http.Response(
+          '',
+          204,
         ),
       });
 
@@ -255,9 +255,8 @@ void main() {
         token: 'test-token',
         httpClient: mockClient,
       );
-      final response = await storeService.deleteCollection();
 
-      expect(response['message'], 'All entities deleted successfully');
+      expect(storeService.deleteCollection, returnsNormally);
     });
 
     test('getConfig returns StoreConfig', () async {

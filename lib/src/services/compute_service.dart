@@ -6,7 +6,7 @@ import '../core/http_client.dart';
 import '../core/models/compute_models.dart';
 import '../utils/constants.dart';
 
-/// Client for CL Server Compute Service (manages compute jobs via store service)
+/// Client for CL Server Compute Service
 class ComputeService {
   ComputeService(
     this.baseUrl, {
@@ -24,12 +24,13 @@ class ComputeService {
   late final HttpClientWrapper _httpClient;
 
   /// Create a new compute job
-  /// POST /job/{task_type}
+  /// POST /compute/jobs/{task_type}
   ///
   /// Parameters:
   /// - [taskType]: The type of task to execute
   /// - [metadata]: Optional metadata to attach to the job
-  /// - [externalFiles]: Optional list of external file references with 'path' and optional 'metadata' keys
+  /// - [externalFiles]: Optional list of external file references
+  ///     with 'path' and optional 'metadata' keys
   Future<Job> createJob({
     required String taskType,
     Map<String, dynamic>? metadata,
@@ -58,7 +59,7 @@ class ComputeService {
   }
 
   /// Get job status
-  /// GET /job/{job_id}
+  /// GET /compute/jobs/{job_id}
   Future<Job> getJobStatus(String jobId) async {
     final endpoint = ComputeServiceEndpoints.getJobStatus.replaceAll(
       '{job_id}',
@@ -70,7 +71,7 @@ class ComputeService {
   }
 
   /// Delete job
-  /// DELETE /job/{job_id}
+  /// DELETE /compute/jobs/{job_id}
   Future<void> deleteJob(String jobId) async {
     final endpoint = ComputeServiceEndpoints.deleteJob.replaceAll(
       '{job_id}',
@@ -80,7 +81,7 @@ class ComputeService {
   }
 
   /// Get available worker capabilities
-  /// GET /job/capability
+  /// GET /compute/jobs/capability
   Future<Map<String, dynamic>> getCapabilities() async {
     final response = await _httpClient.get(
       ComputeServiceEndpoints.getCapabilities,
@@ -89,7 +90,7 @@ class ComputeService {
   }
 
   /// Get storage size
-  /// GET /job/admin/storage/size
+  /// GET /admin/compute/jobs/storage/size
   Future<StorageSize> getStorageSize() async {
     final response = await _httpClient.get(
       ComputeServiceEndpoints.getStorageSize,
@@ -98,7 +99,7 @@ class ComputeService {
   }
 
   /// Cleanup old jobs
-  /// DELETE /job/admin/cleanup?days=7
+  /// DELETE /admin/compute/jobs/cleanup?days=7
   Future<CleanupResponse> cleanupOldJobs({
     required int days,
   }) async {

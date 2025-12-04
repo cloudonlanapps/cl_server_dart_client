@@ -7,7 +7,6 @@ import '../test_helpers.dart';
 
 void main() {
   group('SessionManager Integration Tests - Live Servers', () {
-
     // Test credentials
     const adminUsername = 'admin';
     const adminPassword = 'admin';
@@ -416,7 +415,9 @@ void main() {
         try {
           final manager = SessionManager.initialize(createTestServerConfig());
 
-          // Step 1: Login with test user (who has ai_inference_support permission)
+          // FIXME: Use a user with ai_inference_support permission, not admin
+          // Step 1: Login with test user
+          //  (who has ai_inference_support permission)
           await manager.login(
             adminUsername,
             adminPassword,
