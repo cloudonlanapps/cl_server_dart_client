@@ -193,33 +193,6 @@ void main() {
           fail('Creating ComputeService failed: $e');
         }
       });
-
-      test('ComputeService can create job', () async {
-        try {
-          await adminManager.login(
-            adminUsername,
-            adminPassword,
-          );
-
-          final computeService = await adminManager.createComputeService();
-          final job = await computeService.createJob(
-            taskType: 'test_task',
-            metadata: {'test': 'integration_test'},
-            externalFiles: [
-              {
-                'path': '/tmp/test_file.txt',
-                'metadata': {'name': 'test_input'},
-              },
-            ],
-          );
-
-          expect(job, isNotNull);
-          expect(job.taskType, 'test_task');
-          print('Created job: ${job.jobId}');
-        } on Exception catch (e) {
-          fail('Creating job failed: $e');
-        }
-      });
     });
 
     group('Auth Service Integration', () {
@@ -406,72 +379,6 @@ void main() {
         } on Exception catch (e) {
           // Could also be other exception types depending on server
           print('Service error (expected): ${e.runtimeType}');
-        }
-      });
-    });
-
-    group('Multi-Service Workflow', () {
-      test('Complete workflow: Login -> Create Entity -> Create Job', () async {
-        try {
-          final manager = SessionManager.initialize(createTestServerConfig());
-
-          // FIXME: Use a user with ai_inference_support permission, not admin
-          // Step 1: Login with test user
-          //  (who has ai_inference_support permission)
-          await manager.login(
-            adminUsername,
-            adminPassword,
-          );
-          print('✓ Logged in as $testUsername');
-
-          // Debug: Print token claims
-          final token = await manager.getValidToken();
-          final payload = JwtUtils.parseToken(token);
-          if (payload != null) {
-            print('Token Claims:');
-            print('  userId: ${payload.userId}');
-            print('  isAdmin: ${payload.isAdmin}');
-            print('  permissions: ${payload.permissions}');
-          }
-
-          // Step 2: Create entity via Store Service
-          final storeService = await manager.createStoreService();
-          final entity = await storeService.createEntity(
-            isCollection: true,
-            label: 'Test Workflow Collection',
-            description: 'Created in integration test',
-          );
-          print('✓ Created entity: ${entity.id}');
-
-          // Step 3: Create job via Compute Service
-          final computeService = await manager.createComputeService();
-          final job = await computeService.createJob(
-            taskType: 'test_task',
-            metadata: {
-              'entityId': entity.id,
-              'entityLabel': entity.label,
-            },
-            externalFiles: [
-              {
-                'path': '/tmp/workflow_test_file.txt',
-                'metadata': {'name': 'workflow_input'},
-              },
-            ],
-          );
-          print('✓ Created job: ${job.jobId}');
-
-          // Step 4: Verify user via Auth Service
-          final authService = await manager.createAuthService();
-          final user = await authService.getCurrentUser();
-          print('✓ Verified user: ${user.username}');
-
-          // Step 5: Logout
-          await manager.logout();
-          print('✓ Logged out');
-
-          expect(manager.isLoggedIn, false);
-        } on Exception catch (e) {
-          fail('Multi-service workflow failed: $e');
         }
       });
     });

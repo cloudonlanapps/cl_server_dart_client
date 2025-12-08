@@ -19,7 +19,7 @@ Future<String> generateTestImage({
       final r = ((x / width) * 255).toInt();
       final g = ((y / height) * 128).toInt();
       final b = 255 - ((x / width) * 255).toInt();
-      image.setPixelRgba(x, y, r, g, b, 255);
+      image.setPixelRgba(x, y, r, g, b);
     }
   }
 
@@ -55,7 +55,8 @@ Future<bool> verifyImageResize({
   if (resultImage.width != expectedWidth ||
       resultImage.height != expectedHeight) {
     throw Exception(
-      'Output dimensions do not match. Expected: ${expectedWidth}x$expectedHeight, '
+      'Output dimensions do not match. '
+      'Expected: ${expectedWidth}x$expectedHeight, '
       'Got: ${resultImage.width}x${resultImage.height}',
     );
   }
@@ -75,7 +76,9 @@ Future<bool> verifyImageResize({
   final filledRatio = nonZeroPixels / (resultImage.width * resultImage.height);
   if (filledRatio < 0.1) {
     // Less than 10% of pixels have data, likely empty/corrupted
-    throw Exception('Image content verification failed: insufficient pixel data');
+    throw Exception(
+      'Image content verification failed: insufficient pixel data',
+    );
   }
 
   return true;
@@ -85,8 +88,8 @@ Future<bool> verifyImageResize({
 Future<void> cleanupTestImages(List<String> filePaths) async {
   for (final path in filePaths) {
     final file = File(path);
-    if (await file.exists()) {
-      await file.delete();
+    if (file.existsSync()) {
+      file.deleteSync();
     }
   }
 }

@@ -58,6 +58,7 @@ void main() {
         password: 'TestPass123',
         permissions: ['media_store_write'],
       );
+
       // UserManager API returns dynamic data type that must be cast
       // ignore: avoid_dynamic_calls
       writeOnlyUserId = (writeResult.data.id as dynamic) as int;
@@ -67,6 +68,7 @@ void main() {
         password: 'TestPass123',
         permissions: ['media_store_read'],
       );
+
       // UserManager API returns dynamic data type that must be cast
       // ignore: avoid_dynamic_calls
       readOnlyUserId = (readResult.data.id as dynamic) as int;
@@ -100,6 +102,7 @@ void main() {
         '${testUserPrefix}write_user',
         'TestPass123',
       );
+
       writeOnlyManager = await StoreManager.authenticated(
         sessionManager: writeSession,
       );

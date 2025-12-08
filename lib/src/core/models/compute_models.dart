@@ -1,118 +1,153 @@
 import 'package:meta/meta.dart';
 
-/// Job model for Compute service
+/// Response returned when job is created
+class CreateJobResponse {
+  CreateJobResponse({
+    required this.jobId,
+    required this.status,
+  });
+
+  factory CreateJobResponse.fromJson(Map<String, dynamic> json) {
+    return CreateJobResponse(
+      jobId: json['job_id'] as String,
+      status: json['status'] as String,
+    );
+  }
+  final String jobId;
+  final String status;
+}
+
+/// Worker capabilities structure: { "task_name": count }
+typedef WorkerCapabilities = Map<String, int>;
+
+/// Main Job Model - matches JobResponse in OpenAPI
 @immutable
 class Job {
   const Job({
     required this.jobId,
     required this.taskType,
+    required this.params,
     required this.status,
-    required this.progress,
-    required this.inputFiles,
-    required this.outputFiles,
-    required this.taskOutput,
     required this.createdAt,
+    this.progress = 0,
+    this.taskOutput,
+    this.errorMessage,
+    this.priority = 5,
+    this.updatedAt,
     this.startedAt,
     this.completedAt,
   });
 
-  factory Job.fromJson(Map<String, dynamic> json) {
-    final taskOutputData = json['task_output'];
-    final Map<String, dynamic> taskOutput;
-    if (taskOutputData is Map) {
-      taskOutput = Map<String, dynamic>.from(taskOutputData);
-    } else {
-      taskOutput = {};
-    }
-
+  factory Job.fromMap(Map<String, dynamic> json) {
     return Job(
       jobId: json['job_id'] as String,
       taskType: json['task_type'] as String,
-      status: json['status'] as String,
-      progress: json['progress'] as int? ?? 0,
-      inputFiles: json['input_files'] as List<dynamic>,
-      outputFiles: List<String>.from(
-        (json['output_files'] as List<dynamic>? ?? []).cast<String>(),
-      ),
-      taskOutput: taskOutput,
-      createdAt: _parseDateTime(json['created_at']),
-      startedAt: json['started_at'] != null
-          ? _parseDateTime(json['started_at'])
+      params: (json['params'] as Map<String, dynamic>? ?? {}).map(MapEntry.new),
+      status: json['status'] as String? ?? 'queued',
+      progress: (json['progress'] is int)
+          ? json['progress'] as int
+          : (json['progress'] as num?)?.toInt() ?? 0,
+      taskOutput: (json['task_output'] is Map)
+          ? Map<String, dynamic>.from(json['task_output'] as Map)
           : null,
-      completedAt: json['completed_at'] != null
-          ? _parseDateTime(json['completed_at'])
-          : null,
+      errorMessage: json['error_message'] as String?,
+      priority: (json['priority'] is int)
+          ? json['priority'] as int
+          : (json['priority'] as num?)?.toInt() ?? 5,
+      createdAt: (json['created_at'] as num).toInt(),
+      updatedAt: (json['updated_at'] as num?)?.toInt(),
+      startedAt: (json['started_at'] as num?)?.toInt(),
+      completedAt: (json['completed_at'] as num?)?.toInt(),
     );
-  }
-
-  factory Job.fromMap(Map<String, dynamic> map) {
-    return Job.fromJson(map);
   }
   final String jobId;
   final String taskType;
+  final Map<String, dynamic> params;
   final String status;
   final int progress;
-  // FIXME: InputFile require its own class
-  final List<dynamic> inputFiles;
-  final List<String> outputFiles;
-  final Map<String, dynamic> taskOutput;
-  final DateTime createdAt;
-  final DateTime? startedAt;
-  final DateTime? completedAt;
-
-  Map<String, dynamic> toJson() {
-    return {
-      'job_id': jobId,
-      'task_type': taskType,
-      'status': status,
-      'progress': progress,
-      'input_files': inputFiles,
-      'output_files': outputFiles,
-      'task_output': taskOutput,
-      'created_at': createdAt.millisecondsSinceEpoch,
-      'started_at': startedAt?.millisecondsSinceEpoch,
-      'completed_at': completedAt?.millisecondsSinceEpoch,
-    };
-  }
-
-  Map<String, dynamic> toMap() {
-    return toJson();
-  }
+  final Map<String, dynamic>? taskOutput;
+  final String? errorMessage;
+  final int priority;
+  final int createdAt;
+  final int? updatedAt;
+  final int? startedAt;
+  final int? completedAt;
 
   Job copyWith({
     String? jobId,
     String? taskType,
+    Map<String, dynamic>? params,
     String? status,
     int? progress,
-    List<String>? inputFiles,
-    List<String>? outputFiles,
     Map<String, dynamic>? taskOutput,
-    DateTime? createdAt,
-    DateTime? startedAt,
-    DateTime? completedAt,
+    String? errorMessage,
+    int? priority,
+    int? createdAt,
+    int? updatedAt,
+    int? startedAt,
+    int? completedAt,
   }) {
     return Job(
       jobId: jobId ?? this.jobId,
       taskType: taskType ?? this.taskType,
+      params: params ?? this.params,
       status: status ?? this.status,
       progress: progress ?? this.progress,
-      inputFiles: inputFiles ?? this.inputFiles,
-      outputFiles: outputFiles ?? this.outputFiles,
       taskOutput: taskOutput ?? this.taskOutput,
+      errorMessage: errorMessage ?? this.errorMessage,
+      priority: priority ?? this.priority,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       startedAt: startedAt ?? this.startedAt,
       completedAt: completedAt ?? this.completedAt,
     );
   }
 
-  static DateTime _parseDateTime(dynamic value) {
-    if (value is String) {
-      return DateTime.parse(value);
-    } else if (value is int) {
-      return DateTime.fromMillisecondsSinceEpoch(value);
-    }
-    return DateTime.now();
+  /// Optional: useful for logging and debug
+  Map<String, dynamic> toMap() {
+    return {
+      'job_id': jobId,
+      'task_type': taskType,
+      'params': params,
+      'status': status,
+      'progress': progress,
+      'task_output': taskOutput,
+      'error_message': errorMessage,
+      'priority': priority,
+      'created_at': createdAt,
+      'updated_at': updatedAt,
+      'started_at': startedAt,
+      'completed_at': completedAt,
+    };
   }
+
+  bool get isFinished => status == 'completed' || status == 'failed';
+}
+
+class StorageInfo {
+  StorageInfo({required this.totalSize, required this.jobCount});
+
+  factory StorageInfo.fromJson(Map<String, dynamic> json) {
+    return StorageInfo(
+      totalSize: json['total_size'] as int,
+      jobCount: json['job_count'] as int,
+    );
+  }
+  final int totalSize;
+  final int jobCount;
+}
+
+class CleanupResult {
+  CleanupResult({required this.deletedCount, required this.freedSpace});
+
+  factory CleanupResult.fromJson(Map<String, dynamic> json) {
+    return CleanupResult(
+      deletedCount: json['deleted_count'] as int,
+      freedSpace: json['freed_space'] as int,
+    );
+  }
+  final int deletedCount;
+  final int freedSpace;
 }
 
 /// Worker status model
@@ -297,53 +332,6 @@ class CleanupResponse {
     return CleanupResponse(
       message: message ?? this.message,
       deletedCount: deletedCount ?? this.deletedCount,
-    );
-  }
-}
-
-/// Worker capabilities model
-@immutable
-class WorkerCapabilities {
-  const WorkerCapabilities({
-    required this.numWorkers,
-    required this.capabilities,
-  });
-
-  factory WorkerCapabilities.fromJson(Map<String, dynamic> json) {
-    return WorkerCapabilities(
-      numWorkers: json['num_workers'] as int? ?? 0,
-      capabilities: Map<String, int>.from(
-        (json['capabilities'] as Map<dynamic, dynamic>? ?? {})
-            .cast<String, int>(),
-      ),
-    );
-  }
-
-  factory WorkerCapabilities.fromMap(Map<String, dynamic> map) {
-    return WorkerCapabilities.fromJson(map);
-  }
-
-  final int numWorkers;
-  final Map<String, int> capabilities;
-
-  Map<String, dynamic> toJson() {
-    return {
-      'num_workers': numWorkers,
-      'capabilities': capabilities,
-    };
-  }
-
-  Map<String, dynamic> toMap() {
-    return toJson();
-  }
-
-  WorkerCapabilities copyWith({
-    int? numWorkers,
-    Map<String, int>? capabilities,
-  }) {
-    return WorkerCapabilities(
-      numWorkers: numWorkers ?? this.numWorkers,
-      capabilities: capabilities ?? this.capabilities,
     );
   }
 }

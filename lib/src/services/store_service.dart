@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:http/http.dart' as http;
 
 import '../core/http_client.dart';
@@ -104,21 +106,24 @@ class StoreService {
     String? label,
     String? description,
     int? parentId,
+    String? imagePath,
   }) async {
     final body = <String, dynamic>{
       'is_collection': isCollection,
+      'label': ?label,
+      'description': ?description,
+      'parent_id': ?parentId,
     };
 
-    if (label != null) body['label'] = label;
-    if (description != null) body['description'] = description;
-    if (parentId != null) body['parent_id'] = parentId;
+    final files = imagePath != null ? {'image': File(imagePath)} : null;
 
     final response = await _httpClient.post(
       StoreServiceEndpoints.createEntity,
       body: body,
-      isFormData: true,
+      files: files,
     );
-    return Entity.fromJson(response);
+
+    return Entity.fromMap(response);
   }
 
   /// Update entity (PUT)

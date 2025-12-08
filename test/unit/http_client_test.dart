@@ -160,27 +160,36 @@ void main() {
         expect(response['name'], 'test');
       });
 
-      test('POST sends JSON body correctly', () async {
-        final mockClient = MockHttpClient({
-          'POST $authServiceBaseUrl/test': http.Response(
-            '{"success": true}',
-            201,
-          ),
-        });
+      test(
+        'POST sends form-urlencoded body correctly when no files are provided',
+        () async {
+          final mockClient = MockHttpClient({
+            'POST $authServiceBaseUrl/test': http.Response(
+              '{"success": true}',
+              201,
+            ),
+          });
 
-        final client = HttpClientWrapper(
-          baseUrl: authServiceBaseUrl,
-          httpClient: mockClient,
-        );
-
-        await client.post('/test', body: {'key': 'value'});
-        if (mockClient.lastRequest is http.Request) {
-          expect(
-            (mockClient.lastRequest as http.Request).body,
-            contains('"key":"value"'),
+          final client = HttpClientWrapper(
+            baseUrl: authServiceBaseUrl,
+            httpClient: mockClient,
           );
-        }
-      });
+
+          await client.post('/test', body: {'key': 'value'});
+
+          expect(mockClient.lastRequest, isA<http.Request>());
+          final request = mockClient.lastRequest as http.Request;
+
+          // Ensure correct content-type is set
+          expect(
+            request.headers['Content-Type'],
+            contains('application/x-www-form-urlencoded'),
+          );
+
+          // Ensure correct encoding of the body
+          expect(request.body, equals('key=value'));
+        },
+      );
     });
 
     group('PUT requests', () {

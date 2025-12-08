@@ -39,7 +39,6 @@ class AuthService {
         'username': username,
         'password': password,
       },
-      isFormData: true,
     );
     return TokenResponse.fromJson(response);
   }

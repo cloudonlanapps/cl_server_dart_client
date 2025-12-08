@@ -35,49 +35,49 @@ class HttpClientWrapper {
     String endpoint, {
     Map<String, dynamic>? body,
     Map<String, String>? queryParameters,
-    bool isFormData = false,
-    List<File>? files,
+    Map<String, File>? files,
   }) async {
     try {
       final uri = _buildUri(endpoint, queryParameters);
-      late final http.Response response;
 
-      if (isFormData) {
-        // Handle form data
+      // If file uploads are included → multipart/form-data
+      if (files != null && files.isNotEmpty) {
         final request = http.MultipartRequest('POST', uri);
         request.headers.addAll(_buildHeaders());
-        if (body != null) {
-          body.forEach((key, value) {
-            // Convert all values to String for form data
-            if (value != null) {
-              request.fields[key] = value.toString();
-            }
-          });
+
+        // Add form fields
+        body?.forEach((key, value) {
+          if (value != null) request.fields[key] = value.toString();
+        });
+
+        // Add files
+        for (final entry in files.entries) {
+          final fileName = entry.value.path.split('/').last;
+          request.files.add(
+            http.MultipartFile(
+              entry.key,
+              entry.value.openRead(),
+              await entry.value.length(),
+              filename: fileName,
+            ),
+          );
         }
-        // Add files if provided
-        if (files != null && files.isNotEmpty) {
-          for (final file in files) {
-            final fileName = file.path.split('/').last;
-            request.files.add(
-              http.MultipartFile(
-                'upload_files',
-                file.openRead(),
-                await file.length(),
-                filename: fileName,
-              ),
-            );
-          }
-        }
-        final streamResponse = await _httpClient.send(request);
-        response = await http.Response.fromStream(streamResponse);
-      } else {
-        // Handle JSON body
-        response = await _httpClient.post(
-          uri,
-          headers: _buildHeaders(),
-          body: body != null ? jsonEncode(body) : null,
+
+        final response = await http.Response.fromStream(
+          await _httpClient.send(request),
         );
+        return _handleResponse(response);
       }
+
+      // If NO file → send as application/x-www-form-urlencoded
+      final response = await _httpClient.post(
+        uri,
+        headers: {
+          ..._buildHeaders(),
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: body?.map((k, v) => MapEntry(k, v.toString())),
+      );
 
       return _handleResponse(response);
     } on CLServerException {
