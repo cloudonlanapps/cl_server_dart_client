@@ -157,4 +157,9 @@ class ComputeService {
 
     return completer.future.timeout(timeout).whenComplete(() => sub.cancel());
   }
+
+  Future<bool> hasTaskType(String taskType) async {
+    final caps = await getCapabilities();
+    return caps.containsKey(taskType);
+  }
 }

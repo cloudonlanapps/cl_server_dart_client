@@ -144,6 +144,7 @@ void main() {
             body: {},
           );
           fail('Should have thrown UnsupportedError');
+          // ignore: avoid_catching_errors
         } on UnsupportedError catch (e) {
           expect(e.message, contains('unsupported_task_type_12345'));
           expect(e.message, contains('not supported'));
