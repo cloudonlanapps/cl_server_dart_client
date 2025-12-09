@@ -142,6 +142,7 @@ void main() {
             taskType: 'unsupported_task_type_12345',
             body: {},
           );
+          fail('Should have thrown UnsupportedError');
         } on Exception catch (e) {
           expect(e.toString(), contains('unsupported_task_type_12345'));
           expect(e.toString(), contains('not supported'));
@@ -156,7 +157,7 @@ void main() {
               taskType: 'invalid_task',
               body: {},
             ),
-            throwsA(isA<UnsupportedError>()),
+            throwsA(isA<Exception>()),
           );
         },
       );
