@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 /// Response returned when job is created
@@ -37,6 +40,9 @@ class Job {
     this.startedAt,
     this.completedAt,
   });
+
+  factory Job.fromJson(String source) =>
+      Job.fromMap(json.decode(source) as Map<String, dynamic>);
 
   factory Job.fromMap(Map<String, dynamic> json) {
     return Job(
@@ -122,6 +128,48 @@ class Job {
   }
 
   bool get isFinished => status == 'completed' || status == 'failed';
+
+  @override
+  String toString() {
+    return 'Job(jobId: $jobId, taskType: $taskType, params: $params, status: $status, progress: $progress, taskOutput: $taskOutput, errorMessage: $errorMessage, priority: $priority, createdAt: $createdAt, updatedAt: $updatedAt, startedAt: $startedAt, completedAt: $completedAt)';
+  }
+
+  @override
+  bool operator ==(covariant Job other) {
+    if (identical(this, other)) return true;
+    final mapEquals = const DeepCollectionEquality().equals;
+
+    return other.jobId == jobId &&
+        other.taskType == taskType &&
+        mapEquals(other.params, params) &&
+        other.status == status &&
+        other.progress == progress &&
+        mapEquals(other.taskOutput, taskOutput) &&
+        other.errorMessage == errorMessage &&
+        other.priority == priority &&
+        other.createdAt == createdAt &&
+        other.updatedAt == updatedAt &&
+        other.startedAt == startedAt &&
+        other.completedAt == completedAt;
+  }
+
+  @override
+  int get hashCode {
+    return jobId.hashCode ^
+        taskType.hashCode ^
+        params.hashCode ^
+        status.hashCode ^
+        progress.hashCode ^
+        taskOutput.hashCode ^
+        errorMessage.hashCode ^
+        priority.hashCode ^
+        createdAt.hashCode ^
+        updatedAt.hashCode ^
+        startedAt.hashCode ^
+        completedAt.hashCode;
+  }
+
+  String toJson() => json.encode(toMap());
 }
 
 class StorageInfo {
